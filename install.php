@@ -14,30 +14,31 @@ error_reporting(E_ALL);
 empty($_GET['step']) and $_GET['step'] = null;
 empty($_GET['oauth']) and $_GET['oauth'] = null;
 empty($_GET['reset_account']) and $_GET['reset_account'] = null;
-empty($_GET['installing']) and $_GET['installing'] = null;
+empty($_GET['installing']) and $_GET['installing'] = null;//FIXME Deprecated
 //var_dump($_GET);
 
+$admin_uri = admin_url('admin.php');
 $install_uri = admin_url('admin.php?page=base_to_wp_install');
-$redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME installingいらない
+$redirect_uri = $install_uri . '&step=5&oauth=1';
+list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
 
 //FIXME DEVELOP define $REDIRECT_URI_DEV and BASE_HOST_DEV
 include BASE_TO_WP_ABSPATH . '/config.php';
 $redirect_uri = REDIRECT_URI_DEV;
 \OAuth\BaseOAuth::$host = BASE_HOST_DEV;
 
-var_dump(
-get_option('base_to_wp_client_key'),
-get_option('base_to_wp_client_secret'),
-get_option('base_to_wp_install_stage'),
-
-get_option('base_to_wp_access_token'),
-get_option('base_to_wp_refresh_token'),
-get_option('base_to_wp_request_oauth'),
-get_option('base_to_wp_account_activated'),
-//初期設定
-get_option("base_to_wp_hogehoge"),
-get_option('base_to_wp_piyopiyo')
-);
+var_dump(array(
+	'base_to_wp_client_key' => get_option('base_to_wp_client_key'),
+	'base_to_wp_client_secret' => get_option('base_to_wp_client_secret'),
+	'base_to_wp_install_stage' => get_option('base_to_wp_install_stage'),
+	'base_to_wp_access_token' => get_option('base_to_wp_access_token'),
+	'base_to_wp_refresh_token' => get_option('base_to_wp_refresh_token'),
+	'base_to_wp_request_oauth' => get_option('base_to_wp_request_oauth'),
+	'base_to_wp_account_activated' => get_option('base_to_wp_account_activated'),
+	//初期設定
+	'base_to_wp_hogehoge' => get_option("base_to_wp_hogehoge"),
+	'base_to_wp_piyopiyo' => get_option('base_to_wp_piyopiyo'),
+));
 
 
 if ($_POST) {
@@ -102,7 +103,7 @@ if ($stage == '') {
 			<li>アプリケーションの設定を保存し、セットアップを続行するためにこのページに戻って来てください。</li>
 		</ol>
 
-		<p style="text-align:right"><a class="button" href="<?php echo $install_uri . '&step=2'; ?>">次へ進む</a></p>
+		<p style="text-align:right"><a class="button" href="<?php echo $next_uri . '&step=2'; ?>">次へ進む</a></p>
 	<?php endif;?>
 
 	<?php if ($stage == '2') : ?>
@@ -110,7 +111,7 @@ if ($stage == '') {
 		<p>BASE APIとのインターフェイスにワードプレスを有効にするには、キーを入力する必要があります。あなたは<a href="http://thebase.in/apps/" target="_blank">このBASE APPページ</a>を訪問して、前のステップで登録されたアプリケーションを選択することでそれらを見つけることができます。</p>
 		<p style="text-align:center"><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/wizard_2.png" alt="Finding the Application Keys" /></p>
 		<p><strong>Client Key</strong> と <strong>Client Secret</strong> を入力してください。</p>
-		<form method="post" action="<?php echo $install_uri . '&step=3'; ?>">
+		<form method="post" action="<?php echo $next_uri . '&step=3'; ?>">
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row"><label for="base_to_wp_client_key">Client Key</label></th>
@@ -143,12 +144,15 @@ if ($stage == '') {
 		<p>下のボタンをクリックすると、api.thebasedev.in へ移動します。あなたがすでにログインしている場合は、あなたのブログを認可するためのオプションが表示されます。「アプリを認証する」ボタンを押して、自動でここへ戻って来ます。</p>
 		<p style="text-align:center">
 			<a href="<?php echo $authorize_uri; ?>" class="button">BASE API おーそりぼたん</a>
+			　/　<a href="<?php echo $admin_uri . '?page=base_to_wp_install&step=5&oauth=1&code=111&state=debug'; ?>" class="button">#DEBUG BASE API おーそりが成功した体ぼたん</a>
 		</p>
 	<?php endif; ?>
 
 	<?php if ($stage == '5') :
 
 //		var_dump($_GET['code']);
+
+		if ($_GET['state'] !== 'debug' ) : //FIXME DEBUG
 
 		//認可コードからaccess_token,refresh_tokenを取得して保存する
 		$BaseOAuth = new \OAuth\BaseOAuth();
@@ -161,6 +165,16 @@ if ($stage == '') {
 		);
 
 		var_dump($response);
+
+		//FIXME DEBUG
+		else :
+			$BaseOAuth = new \OAuth\BaseOAuth();
+			$BaseOAuth->http_code = 200;
+			$response = new stdClass();
+			$response->access_token = 'debug_access_token';
+			$response->refresh_token = 'debug_refresh_token';
+		endif;
+		//FIXME DEBUG
 
 		if ($BaseOAuth->http_code == 200) :
 			//Update WP options

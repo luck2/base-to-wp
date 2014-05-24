@@ -68,6 +68,10 @@ class BaseToWP {
 		//#TODO jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
 
+		// Install check
+		add_action('init', array($this, 'install_check'));
+
+
 		//#TODO 管理メニューに追加するフック
 		add_action('admin_menu', array($this, 'admin_menus'));
 
@@ -137,15 +141,15 @@ class BaseToWP {
 		 * 管理画面　セッティング
 		 */
 		function settings() {
-			echo "<h2>Test Sublevel</h2>";
+			include_once BASE_TO_WP_ABSPATH . "/settings.php";
 		}
 
 		/**
 		 * 管理画面　インストール
 		 */
-		function install() {
-			include_once BASE_TO_WP_ABSPATH . "/install.php";
-		}
+			function install() {
+				include_once BASE_TO_WP_ABSPATH . "/install.php";
+			}
 
 
 		// 設定メニュー下にサブメニューを追加:
@@ -157,8 +161,23 @@ class BaseToWP {
 		// カスタムのトップレベルメニューにサブメニューを追加:
 		add_submenu_page('base_to_wp', 'BASE settings', 'Settings', 'administrator', 'base_to_wp_settings', '\BaseToWP\settings');
 		// カスタムのトップレベルメニューに二つ目のサブメニューを追加:
-		add_submenu_page('base_to_wp', 'BASE install', 'Install', 'administrator', 'base_to_wp_install', '\BaseToWP\install');
+		if (!get_option('base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth']))
+			add_submenu_page('base_to_wp', 'BASE install', 'Install', 'administrator', 'base_to_wp_install', '\BaseToWP\install');
+
 	}
+
+	public function install_check(){
+//		if (!get_option('base_to_wp_account_activated') && (!$_GET['reset_account'] || $_GET['oauth'])) {
+//			if (strpos($_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], 'tweetable')) {
+//				$admin_url = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+//				$admin_url_split = explode('/wp-admin/', $admin_url);
+//				$admin_url = htmlentities($admin_url_split[0]);
+//				wp_redirect($admin_url.'/wp-admin/admin.php?page=tweetable_install&installing=1');
+//			}
+//		}
+
+	}
+
 
 }
 
