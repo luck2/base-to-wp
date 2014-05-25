@@ -13,6 +13,7 @@ namespace BaseToWP;
 //use SnsTrend\Model\Trends;
 
 define( 'BASE_TO_WP_ABSPATH', dirname( __FILE__ ) );
+define( 'BASE_TO_WP_NAMEDOMAIN', 'base-to-wp' );
 
 //require BASE_TO_WP_ABSPATH . '/libs/SplClassLoader.php';
 //$class_loader_sns_trend = new SplClassLoader('BaseToWP', dirname(__DIR__));

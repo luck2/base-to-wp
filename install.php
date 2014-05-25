@@ -19,26 +19,12 @@ empty($_GET['reset_account']) and $_GET['reset_account'] = null;
 $admin_uri = admin_url('admin.php');
 $install_uri = admin_url('admin.php?page=base_to_wp_install');
 $redirect_uri = $install_uri . '&step=5&oauth=1';
+$redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME DEVELOP
 list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
 
-//FIXME DEVELOP define $REDIRECT_URI_DEV and BASE_HOST_DEV
+//FIXME DEVELOP define BASE_HOST_DEV
 include BASE_TO_WP_ABSPATH . '/config.php';
-$redirect_uri = REDIRECT_URI_DEV;
 \OAuth\BaseOAuth::$host = BASE_HOST_DEV;
-
-var_dump(array(
-	'base_to_wp_client_key' => get_option('base_to_wp_client_key'),
-	'base_to_wp_client_secret' => get_option('base_to_wp_client_secret'),
-	'base_to_wp_install_stage' => get_option('base_to_wp_install_stage'),
-	'base_to_wp_access_token' => get_option('base_to_wp_access_token'),
-	'base_to_wp_refresh_token' => get_option('base_to_wp_refresh_token'),
-	'base_to_wp_request_oauth' => get_option('base_to_wp_request_oauth'),
-	'base_to_wp_account_activated' => get_option('base_to_wp_account_activated'),
-	//初期設定
-	'base_to_wp_hogehoge' => get_option("base_to_wp_hogehoge"),
-	'base_to_wp_piyopiyo' => get_option('base_to_wp_piyopiyo'),
-));
-
 
 if ($_POST) {
 	// client key 保存
@@ -46,6 +32,7 @@ if ($_POST) {
 		if ($_POST['base_to_wp_client_key'] != '' && $_POST['base_to_wp_client_secret'] != '') {
 			update_option('base_to_wp_client_key', $_POST['base_to_wp_client_key']);
 			update_option('base_to_wp_client_secret', $_POST['base_to_wp_client_secret']);
+			update_option('base_to_wp_redirect_uri', $redirect_uri);
 		} else {
 			$_GET['step'] = '2';
 		}
@@ -70,6 +57,27 @@ if ($stage == '') {
 }
 
 //var_dump($stage);
+
+//TODO DEBUG
+var_dump(array(
+	'base_to_wp_install_stage' => get_option('base_to_wp_install_stage'),
+	'base_to_wp_account_activated' => get_option('base_to_wp_account_activated'),
+
+	'base_to_wp_client_key' => get_option('base_to_wp_client_key'),
+	'base_to_wp_client_secret' => get_option('base_to_wp_client_secret'),
+	'base_to_wp_redirect_uri' => get_option('base_to_wp_redirect_uri'),
+	'base_to_wp_access_token' => get_option('base_to_wp_access_token'),
+	'base_to_wp_access_token_expires' => get_option('base_to_wp_access_token_expires'),
+	'base_to_wp_refresh_token' => get_option('base_to_wp_refresh_token'),
+	'base_to_wp_refresh_token_expires' => get_option('base_to_wp_refresh_token_expires'),
+
+	'base_to_wp_request_oauth' => get_option('base_to_wp_request_oauth'),
+	//初期設定
+	'base_to_wp_hogehoge' => get_option("base_to_wp_hogehoge"),
+	'base_to_wp_piyopiyo' => get_option('base_to_wp_piyopiyo'),
+));
+
+
 ?>
 
 
@@ -85,7 +93,7 @@ if ($stage == '') {
 	?>
 	<?php if ( isset($message) ) : ?>
 		<div id="message" class="updated fade">
-			<p><?php _e($message, 'base-to-wp'); ?></p>
+			<p><?php _e($message, BASE_TO_WP_NAMEDOMAIN); ?></p>
 		</div>
 	<?php endif; ?>
 
@@ -141,7 +149,7 @@ if ($stage == '') {
 		$authorize_uri = $BaseOAuth->getAuthorize(
 			$client_id = get_option('base_to_wp_client_key'),
 			$redirect_uri,
-			$scope = 'read_users read_items read_orders',
+			$scope = 'read_users read_users_mail read_items read_orders write_items write_orders',//使用範囲
 			$stage = 'hogehoge'
 		);
 	?>
@@ -169,8 +177,7 @@ if ($stage == '') {
 			$code = $_GET['code'],//FIXME Sanitize
 			$redirect_uri
 		);
-
-		var_dump($response);
+//		var_dump($response);
 
 		//FIXME DEBUG
 		else :
@@ -178,6 +185,7 @@ if ($stage == '') {
 			$BaseOAuth->http_code = 200;
 			$response = new stdClass();
 			$response->access_token = 'debug_access_token';
+			$response->expires_in = '3600';
 			$response->refresh_token = 'debug_refresh_token';
 		endif;
 		//FIXME DEBUG
@@ -185,7 +193,9 @@ if ($stage == '') {
 		if ($BaseOAuth->http_code == 200) :
 			//Update WP options
 			update_option('base_to_wp_access_token', $response->access_token);
+			update_option('base_to_wp_access_token_expires', (int) date_i18n('U') + (int) $response->expires_in);
 			update_option('base_to_wp_refresh_token', $response->refresh_token);
+			update_option('base_to_wp_refresh_token_expires', (int) date_i18n('U') + (60 * 60 * 24 * 30) - 10);//30日後まで
 			delete_option('base_to_wp_request_oauth');
 			update_option('base_to_wp_account_activated', '1');
 			//初期設定
@@ -193,7 +203,8 @@ if ($stage == '') {
 			update_option('base_to_wp_piyopiyo', array(
 				1 => 'bar',
 				2 => get_bloginfo('name'),
-				3 => 'from:foo'
+				3 => 'from:foo',
+				'aaa' => 'bbbb',
 			));
 		?>
 			<h3><span style="font-size: 150%">Step 5 :</span> おめでとう！すべてが完了しました！</h3>

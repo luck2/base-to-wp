@@ -6,79 +6,77 @@
  * Time: 22:17
  */
 
+//TODO DEBUG
+var_dump(array(
+	'base_to_wp_install_stage' => get_option('base_to_wp_install_stage'),
+	'base_to_wp_account_activated' => get_option('base_to_wp_account_activated'),
 
-//wp_safe_redirect( admin_url('admin.php?page=base_to_wp_install') );
+	'base_to_wp_client_key' => get_option('base_to_wp_client_key'),
+	'base_to_wp_client_secret' => get_option('base_to_wp_client_secret'),
+	'base_to_wp_redirect_uri' => get_option('base_to_wp_redirect_uri'),
+
+	'base_to_wp_access_token' => get_option('base_to_wp_access_token'),
+	'base_to_wp_access_token_expires' => get_option('base_to_wp_access_token_expires'),
+	'base_to_wp_refresh_token' => get_option('base_to_wp_refresh_token'),
+	'base_to_wp_refresh_token_expires' => get_option('base_to_wp_refresh_token_expires'),
+
+//	'base_to_wp_request_oauth' => get_option('base_to_wp_request_oauth'),
+	//初期設定
+//	'base_to_wp_hogehoge' => get_option("base_to_wp_hogehoge"),
+//	'base_to_wp_piyopiyo' => get_option('base_to_wp_piyopiyo'),
+));
 
 
+//FIXME DEVELOP define $REDIRECT_URI_DEV and BASE_HOST_DEV
+include BASE_TO_WP_ABSPATH . '/config.php';
+\OAuth\BaseOAuth::$host = BASE_HOST_DEV;
 
-//// アクセストークン取得
-////POST /1/oauth/token
-//$api = '/1/oauth/token';
-//$code = $_GET['code'];
-//echo '認証コード：' . esc_html($_GET['code']) . PHP_EOL;
-//
-//// アクセストークンを取得するサンプルコード
-//$params = array(
-//	'client_id'     => $client_id,
-//	'client_secret' => $client_secret,
-//	'code'          => $code,
-//	'grant_type'    => 'authorization_code',
-//	'redirect_uri'  => $redirect_uri,
-//);
-//$headers = array(
-//	'Content-Type: application/x-www-form-urlencoded',
-//);
-//$request_options = array(
-//	'http' => array(
-//		'method'  => 'POST',
-//		'content' => http_build_query($params),
-//		'header'  => implode("\r\n", $headers),
-//	),
-//);
-//$context = stream_context_create($request_options);
-//$response_body = file_get_contents($api_uri.$api, false, $context);
-//$token = json_decode($response_body);
-//var_dump($token);
-//
-////GET /1/users/me
-////ユーザー情報を取得
-//$api = '/1/users/me';
-//$headers = array(
-//	'Authorization: Bearer ' . $token->access_token,
-//);
-//$request_options = array(
-//	'http' => array(
-//		'method' => 'GET',
-//		'header' => implode("\r\n", $headers),
-//	),
-//);
-//$context = stream_context_create($request_options);
-//$response_body = file_get_contents($api_uri.$api, false, $context);
-//var_dump($response_body);
-//
-////GET /1/items
-////商品情報の一覧を取得
-//$api = '/1/items';
-//
-//$params = http_build_query(array(
-////					'limit'  => 10,
-////					'offset' => 0,
-//), null, "&", PHP_QUERY_RFC3986);
-//
-//$headers = array(
-//	'Authorization: Bearer ' . $token->access_token,
-//);
-//$request_options = array(
-//	'http' => array(
-//		'method' => 'GET',
-//		'header' => implode("\r\n", $headers),
-//	),
-//);
-//$context = stream_context_create($request_options);
-//$response_body = file_get_contents($api_uri.$api.'?'.$params, false, $context);
-//var_dump($response_body);
+
+// option のkeyをチェック　不正ならinstall reset account
+
+$BaseOAuth = new \OAuth\BaseOAuth(
+	$client_id     = get_option('base_to_wp_client_key'),
+	$client_secret = get_option('base_to_wp_client_secret'),
+	$redirect_uri  = get_option('base_to_wp_redirect_uri'),
+	$access_token  = get_option('base_to_wp_access_token'),
+	$refresh_token = get_option('base_to_wp_refresh_token')
+);
+
+// アクセストークンの有効期限を調べて切れてるなら新しく取得
+// リフレッシュトークンが有効ならリフレッシュトークンからアクセストークンを取得
+// リフレッシュトークンが無効なら認可コードからアクセストークン、リフレッシュトークンを取得
+// 有効なアクセストークンが取得できないならinstallページに移動させるリンクを表示
 
 ?>
-<h2>Test Toplevel</h2>
+<h2><?php _e('BASE To WordPress Dashboard', BASE_TO_WP_NAMEDOMAIN); ?></h2>
 
-aaaaa
+<h3>BASEショップ情報</h3>
+<?php
+$user = $BaseOAuth->getUsers();
+//var_dump($user);
+?>
+<dl>
+<?php
+foreach ( $user as $key => $value ) :
+	if ($key==='logo') $value = '<img src="'.$value.'" style="width: 300px;" />';
+?>
+	<dt><?php echo $key; ?></dt>
+	<dd><?php echo $value; ?></dd>
+<?php endforeach; ?>
+</dl>
+<br/>
+
+<h3>商品情報の一覧</h3>
+<?php
+$items = $BaseOAuth->getItems();
+var_dump($items);
+?>
+
+<h3>注文情報の一覧</h3>
+
+
+<h3>引き出し申請情報</h3>
+
+
+
+

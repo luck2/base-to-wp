@@ -68,6 +68,12 @@ class BaseOAuth {
 	 */
 	const SAVINGS = 'savings';
 
+	public $client_key;
+	public $client_secret;
+	public $redirect_uri;
+	public $access_token = null;
+	public $refresh_token = null;
+
 	/* Contains the last API call. */
 	public $url = null;
 	/* Contains the last HTTP status code returned. */
@@ -76,12 +82,14 @@ class BaseOAuth {
 	public $response = array();
 
 
-	public function __construct( $config=array() ) {
+	public function __construct( $client_key=null, $client_secret=null, $redirect_uri=null, $access_token=null, $refresh_token=null ) {
+		$this->client_key    = $client_key;
+		$this->client_secret = $client_secret;
+		$this->redirect_uri  = $redirect_uri;
+		$this->access_token  = $access_token;
+		$this->refresh_token = $refresh_token;
 	}
 
-	public function request( $method, $url, $params=array(), $useauth=true, $multipart=false ) {
-		return true;
-	}
 
 	/**
 	 * GET /1/oauth/authorize - 認可コードを取得
@@ -160,13 +168,28 @@ class BaseOAuth {
 		return $response;
 	}
 
-	public function users() {
+	public function getUsers($access_token=null) {
+
+		$this->url = self::build_url(self::USERS_ME);
+
+		$response = $this->_get($this->url);
+
+		/**
+		 * shop_id - ユーザーを識別するユニークなID。文字列型。
+		 * background - ショップの背景画像
+		 * logo - ショップのロゴ画像
+		 * mail_address - read_users_mailのscopeがある時のみ取得できます。
+		 */
+		if ($response)
+			$response = json_decode($response);
+
+		return $response->user;
 	}
-	public function items() {
-	}
-	public function orders() {
-	}
-	public function savings() {
+
+	private function _get($url) {
+		$this->_request('GET', $url);
+		return $this->response;
+
 	}
 
 	/**
@@ -180,27 +203,81 @@ class BaseOAuth {
 	 * @return string
 	 */
 	private function _post($url, $params) {
+		$this->_request('POST', $url, $params);
+		return $this->response;
+	}
+
+
+	public function _request( $method, $url, $params=array()) {
 		//FIXME CURLに変更する
-		$headers = array(
-			'Content-Type: application/x-www-form-urlencoded',
-		);
+
+		// Headerを生成する
+		$headers = array();
+		if ($this->access_token) {
+			$headers = array(
+				'Authorization: Bearer ' . $this->access_token,
+			);
+		}
+		if ($method === 'GET') {
+		} elseif ($method === 'POST') {
+			$headers[] = 'Content-Type: application/x-www-form-urlencoded';
+		} else {
+			return false;
+		}
+
 		$request_options = array(
 			'http' => array(
-				'method'  => 'POST',
-				'content' => http_build_query($params),
+				'method'  => $method,
+				'content' => http_build_query($params),//POSTの場合
 				'header'  => implode("\r\n", $headers),
 			),
 		);
 		$context = stream_context_create($request_options);
+
 		$this->response = file_get_contents($url, false, $context);
 		$this->http_code = ($this->response)? 200 : 400;//FIXME CURLに変更
 		return $this->response;
 	}
 
-	private function _get() {
+
+
+
+	/**
+	 * Get Request build
+	 *
+	 * @param $url
+	 * @param Array $params
+	 *
+	 * @return string
+	 */
+	public static function build_url($url, $params=null) {
+
+		if (! is_array($params))
+			return self::$host . $url;
+
+		if (phpversion() >= 5.4) {
+			$str = http_build_query($params, null, "&", PHP_QUERY_RFC3986);
+		} else {
+			$str = http_build_query($params, null, "&");
+			$str = str_replace('+','%20', $str);
+		}
+
+		return self::$host . $url . '?' . $str;
 	}
 
-	private function _request() {
+
+
+	public function items() {
+	}
+	public function orders() {
+	}
+	public function savings() {
+	}
+
+
+
+
+	private function _request___() {
 		//cURLを初期化して使用可能にする
 		$curl=curl_init();
 		//オプションにURLを設定する
@@ -274,29 +351,6 @@ class BaseOAuth {
 	}
 
 
-
-	/**
-	 * Get Request build
-	 *
-	 * @param $url
-	 * @param Array $params
-	 *
-	 * @return string
-	 */
-	public static function build_url($url, $params=null) {
-
-		if (! is_array($params))
-			return self::$host . $url;
-
-		if (phpversion() >= 5.4) {
-			$str = http_build_query($params, null, "&", PHP_QUERY_RFC3986);
-		} else {
-			$str = http_build_query($params, null, "&");
-			$str = str_replace('+','%20', $str);
-		}
-
-		return self::$host . $url . '?' . $str;
-	}
 
 }
 
