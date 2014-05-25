@@ -48,6 +48,8 @@ class BaseToWP {
 		// register widget
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ShopWidget.php";
 		add_action('widgets_init', function(){register_widget("ShopWidget");});
+		require_once BASE_TO_WP_ABSPATH . "/widgets/ItemsWidget.php";
+		add_action('widgets_init', function(){register_widget("ItemsWidget");});
 
 		//#TODO widgets namespaceが使えない
 //		require_once SNS_TREND_ABSPATH . "/widgets/sns_trend_ranking_widget.php";

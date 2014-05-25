@@ -16,7 +16,8 @@ class ShopWidget extends WP_Widget {
 
 	/** constructor */
 	public function __construct() {
-		parent::WP_Widget(false, $name = 'BASE Shop Info');
+		$widget_ops = array( 'classname' => 'widget_base_shop', 'description' => __( "BASEショップへのロゴと説明を表示します" ) );
+		parent::WP_Widget(false, __('BASE Shop Info'), $widget_ops);
 
 		//FIXME DEVELOP define $REDIRECT_URI_DEV and BASE_HOST_DEV
 		include BASE_TO_WP_ABSPATH . '/config.php';

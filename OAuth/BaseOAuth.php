@@ -204,7 +204,6 @@ class BaseOAuth {
 		 * limit	リミット (任意 デフォルト: 20, MAX: 100)
 		 * offset	オフセット (任意 デフォルト: 0)
 		 */
-
 		$this->url = (is_array($params))
 			? ( ($params) ? self::build_url(self::ITEMS, $params) : self::build_url(self::ITEMS) )
 			: self::build_url(self::ITEMS_DETAIL . $params);
@@ -212,13 +211,13 @@ class BaseOAuth {
 		$response = $this->_get($this->url);
 
 		/**
-		 * shop_id - ユーザーを識別するユニークなID。文字列型。
-		 * background - ショップの背景画像
-		 * logo - ショップのロゴ画像
-		 * mail_address - read_users_mailのscopeがある時のみ取得できます。
+		 *
 		 */
 		if ($response)
 			$response = self::json_parse($response);
+
+		if (is_object($response))
+			$response = array($response);
 
 		return $response;
 
