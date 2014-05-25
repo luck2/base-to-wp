@@ -68,12 +68,13 @@ class BaseToWP {
 		//#TODO jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
 
-		// Install check
-		add_action('init', array($this, 'install_check'));
+		// Plugin TextDomain
+		load_plugin_textdomain( 'base_to_wp' );
 
 
-		//#TODO 管理メニューに追加するフック
-		add_action('admin_menu', array($this, 'admin_menus'));
+		//管理画面
+		add_action('init', array($this, 'install_check'));// Install check
+		add_action('admin_menu', array($this, 'admin_menus'));// 管理メニューに追加するフック
 
 		// TODO DEBUG
 		add_action('wp_head', function(){
@@ -121,6 +122,7 @@ class BaseToWP {
 	 * メニュー画面追加
 	 */
 	public function admin_menus() {
+
 		// mt_options_page() はTest Optionsサブメニューのページコンテンツを表示
 		function mt_options_page() {
 			echo "<h2>Test Options</h2>";
@@ -166,16 +168,18 @@ class BaseToWP {
 
 	}
 
+	/**
+	 * 初期設定完了をチェック
+	 */
 	public function install_check(){
-//		if (!get_option('base_to_wp_account_activated') && (!$_GET['reset_account'] || $_GET['oauth'])) {
-//			if (strpos($_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], 'tweetable')) {
-//				$admin_url = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-//				$admin_url_split = explode('/wp-admin/', $admin_url);
-//				$admin_url = htmlentities($admin_url_split[0]);
-//				wp_redirect($admin_url.'/wp-admin/admin.php?page=tweetable_install&installing=1');
-//			}
-//		}
+		//base_to_wp以外
+		if (strpos($_SERVER['REQUEST_URI'],'/wp-admin/admin.php?page=base_to_wp') === false)
+			return;
 
+		//未インストールかつインストールページでない
+		if ( !get_option('base_to_wp_account_activated') && !(isset($_GET['page']) && $_GET['page'] == 'base_to_wp_install' ) ) {
+			wp_redirect(admin_url('admin.php?page=base_to_wp_install'));
+		}
 	}
 
 

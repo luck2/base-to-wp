@@ -11,10 +11,9 @@ error_reporting(E_ALL);
 //TODO client_id, client_secretがない場合、BASE API developer登録を行ってもらい（済の場合省略可）、client_id, client_secretを入力させる。
 
 // $_GET initialize
-empty($_GET['step']) and $_GET['step'] = null;
+empty($_GET['step']) and $_GET['step'] = '1';
 empty($_GET['oauth']) and $_GET['oauth'] = null;
 empty($_GET['reset_account']) and $_GET['reset_account'] = null;
-empty($_GET['installing']) and $_GET['installing'] = null;//FIXME Deprecated
 //var_dump($_GET);
 
 $admin_uri = admin_url('admin.php');
@@ -77,9 +76,16 @@ if ($stage == '') {
 <div class="wrap">
 	<h2>BASE To WordPress Setup</h2>
 
-	<?php if (isset($_GET['reset_account']) && $_GET['step']==='1') : ?>
+	<?php
+	if (get_option('base_to_wp_account_activated') != '1' && $_GET['step'] == '1' ) {
+		$message = "BASE APIのDeveloper登録を完了してください。";
+	} elseif (isset($_GET['reset_account']) && $_GET['step']==='1') {
+		$message = "BASE APIクライアント登録が完了している場合は同じクライアントが使用できます。「Step1」をスキップして次のステップへ進んでください。";
+	}
+	?>
+	<?php if ( isset($message) ) : ?>
 		<div id="message" class="updated fade">
-			<p>BASE APIクライアント登録が完了している場合は同じクライアントが使用できます。「Step1」をスキップして次のステップへ進んでください。</p>
+			<p><?php _e($message, 'base-to-wp'); ?></p>
 		</div>
 	<?php endif; ?>
 
