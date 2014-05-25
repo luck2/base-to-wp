@@ -32,7 +32,7 @@ include BASE_TO_WP_ABSPATH . '/config.php';
 \OAuth\BaseOAuth::$host = BASE_HOST_DEV;
 
 
-// option のkeyをチェック　不正ならinstall reset account
+//TODO option のkeyをチェック　不正ならinstall reset account
 
 $BaseOAuth = new \OAuth\BaseOAuth(
 	$client_id     = get_option('base_to_wp_client_key'),
@@ -42,7 +42,7 @@ $BaseOAuth = new \OAuth\BaseOAuth(
 	$refresh_token = get_option('base_to_wp_refresh_token')
 );
 
-// アクセストークンの有効期限を調べて切れてるなら新しく取得
+//TODO アクセストークンの有効期限を調べて切れてるなら新しく取得
 // リフレッシュトークンが有効ならリフレッシュトークンからアクセストークンを取得
 // リフレッシュトークンが無効なら認可コードからアクセストークン、リフレッシュトークンを取得
 // 有効なアクセストークンが取得できないならinstallページに移動させるリンクを表示
@@ -79,6 +79,8 @@ $BaseOAuth->render_list();
 
 ?>
 
+<h3>カテゴリー情報の一覧</h3>
+<h3>商品のカテゴリー情報</h3>
 <h3>注文情報の一覧</h3>
 
 

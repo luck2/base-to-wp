@@ -41,23 +41,13 @@ class BaseToWP {
 		register_activation_hook(__FILE__, array($this, 'activate'));
 		register_deactivation_hook(__FILE__, array($this, 'deactivate'));
 
-		//cron schedule
-//		$cron = new Cron();
-
-		// カスタムポストタイプ登録
-//		$trend = new CustomPostType();
-
-		// trendsテーブルの一覧ページ
-//		$trend_data = new Data();
-
-		// 設定画面を追加
-//		$trend_option = new Option();
 
 		// ショートコードを設定
 //		$trend_short_code = new ShortCode();
 
-		// アーカイブページ（CustomPostType::POST_TYPE）
-//		$archive_Trend = new ArchiveTrend();
+		// register widget
+		require_once BASE_TO_WP_ABSPATH . "/widgets/ShopWidget.php";
+		add_action('widgets_init', function(){register_widget("ShopWidget");});
 
 		//#TODO widgets namespaceが使えない
 //		require_once SNS_TREND_ABSPATH . "/widgets/sns_trend_ranking_widget.php";
