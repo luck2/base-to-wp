@@ -64,19 +64,25 @@ foreach ( $user as $key => $value ) :
 	<dd><?php echo $value; ?></dd>
 <?php endforeach; ?>
 </dl>
-<br/>
+<hr/>
 
-<h3>商品情報の一覧</h3>
+<h3>商品情報</h3>
+<h4>一覧</h4>
 <?php
-$items = $BaseOAuth->getItems();
-var_dump($items);
+$items = $BaseOAuth->getItems(array());
+$BaseOAuth->render_list();
+?>
+<h4>個別(ID:<?php echo $id=26371;?>)</h4>
+<?php
+$item = $BaseOAuth->getItems($id);
+$BaseOAuth->render_list();
+
 ?>
 
 <h3>注文情報の一覧</h3>
 
 
 <h3>引き出し申請情報</h3>
-
 
 
 

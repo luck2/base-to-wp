@@ -53,6 +53,7 @@ class BaseOAuth {
 	 * POST /1/items/edit_stock - 商品情報の在庫数を更新
 	 */
 	const ITEMS = 'items';
+	const ITEMS_DETAIL = 'items/detail/';
 	/**
 	 * Orders
 	 *
@@ -181,10 +182,59 @@ class BaseOAuth {
 		 * mail_address - read_users_mailのscopeがある時のみ取得できます。
 		 */
 		if ($response)
-			$response = json_decode($response);
+			$response = self::json_parse($response);
 
-		return $response->user;
+		return $response;
 	}
+
+	/**
+	 * GET /1/items - 商品情報の一覧を取得
+	 * GET /1/items/detail/:item_id - 商品情報を取得
+	 *
+	 * @param null $id
+	 * @param array $params
+	 *
+	 * @return mixed
+	 */
+	public function getItems($params=array()) {
+
+		/**
+		 * order	並び替え項目。list_order か created のいずれか (任意 デフォルト: list_order)
+		 * sort	並び順。asc か desc のいずれか (任意 デフォルト: asc)
+		 * limit	リミット (任意 デフォルト: 20, MAX: 100)
+		 * offset	オフセット (任意 デフォルト: 0)
+		 */
+
+		$this->url = (is_array($params))
+			? ( ($params) ? self::build_url(self::ITEMS, $params) : self::build_url(self::ITEMS) )
+			: self::build_url(self::ITEMS_DETAIL . $params);
+
+		$response = $this->_get($this->url);
+
+		/**
+		 * shop_id - ユーザーを識別するユニークなID。文字列型。
+		 * background - ショップの背景画像
+		 * logo - ショップのロゴ画像
+		 * mail_address - read_users_mailのscopeがある時のみ取得できます。
+		 */
+		if ($response)
+			$response = self::json_parse($response);
+
+		return $response;
+
+	}
+	public function addItem() {
+
+	}
+
+
+	public function orders() {
+	}
+	public function savings() {
+	}
+
+
+
 
 	private function _get($url) {
 		$this->_request('GET', $url);
@@ -267,12 +317,6 @@ class BaseOAuth {
 
 
 
-	public function items() {
-	}
-	public function orders() {
-	}
-	public function savings() {
-	}
 
 
 
@@ -350,7 +394,52 @@ class BaseOAuth {
 		return $response;
 	}
 
+	public function render_list($response=null) {
 
+		//jsonならobjectにparse
+		!$response and ($response = $this->response);
+		if (!is_object($response)) {
+			$response = self::json_parse($response);
+		}
+//		var_dump($response);
+
+		if (! is_array($response) ) $response = array($response);
+
+		//TODO 再帰構造にする
+		foreach ( $response as $resp ) :
+		?>
+			<dl>
+		<?php
+			foreach ( $resp as $key => $value ) :
+				if (preg_match('#(.jpg|.png)$#', $value, $matches))
+					$value = '<img src="'.$value.'" style="width: 200px;" />';
+				?>
+				<dt><?php echo $key; ?></dt>
+				<dd>
+				<?php
+					if (is_array($value)) {
+						print_r($value);
+					} else {
+						echo $value;
+					}
+				?>
+				</dd>
+		<?php endforeach; ?>
+			</dl>
+		<?php
+		endforeach;
+	}
+
+	public static function json_parse($response){
+		$response = json_decode($response);
+		if (is_object($response)) {
+			foreach ( $response as $key => $value ) {
+				$response = $value;//一階層はずす
+				break;
+			}
+		}
+		return $response;
+	}
 
 }
 
