@@ -69,7 +69,7 @@ class BaseOAuth {
 	 */
 	const SAVINGS = 'savings';
 
-	public $client_key;
+	public $client_id;
 	public $client_secret;
 	public $redirect_uri;
 	public $access_token = null;
@@ -83,8 +83,8 @@ class BaseOAuth {
 	public $response = array();
 
 
-	public function __construct( $client_key=null, $client_secret=null, $redirect_uri=null, $access_token=null, $refresh_token=null ) {
-		$this->client_key    = $client_key;
+	public function __construct( $client_id=null, $client_secret=null, $redirect_uri=null, $access_token=null, $refresh_token=null ) {
+		$this->client_id    = $client_id;
 		$this->client_secret = $client_secret;
 		$this->redirect_uri  = $redirect_uri;
 		$this->access_token  = $access_token;
@@ -103,7 +103,17 @@ class BaseOAuth {
 	 * @return string
 	 * @internal param $params
 	 */
-	public function getAuthorize( $client_id, $redirect_uri, $scope=null, $state=null ) {
+	public function getAuthorize( $client_id=null, $redirect_uri=null, $scope=null, $state=null ) {
+		// Set
+		$client_id and ($this->client_id = $client_id);
+		$redirect_uri and ($this->redirect_uri = $redirect_uri);
+		// Check
+		if (! $this->client_id) {
+			throw new \Exception('Error: '. 'client_id');
+		} elseif (! $this->redirect_uri) {
+			throw new \Exception('Error: '. 'redirect_uri');
+		}
+
 		/**
 		 * response_type code (必須)
 		 * client_id     クライアントID (必須)
@@ -113,8 +123,8 @@ class BaseOAuth {
 		 */
 		$params = array(
 			'response_type' => 'code',
-			'client_id'     => $client_id,
-			'redirect_uri'  => $redirect_uri,
+			'client_id'     => $this->client_id,
+			'redirect_uri'  => $this->redirect_uri,
 		);
 		$scope and ($params['scope'] = $scope);
 		$state and ($params['state'] = $state);
@@ -131,15 +141,40 @@ class BaseOAuth {
 	 * Error: bool(false)
 	 * POST /1/oauth/token - リフレッシュトークンからアクセストークンを取得
 	 *
-	 * @param $grant_type
+	 * @param string $grant_type
+	 * @param $code_or_refresh_token
 	 * @param $client_id
 	 * @param $client_secret
-	 * @param $code_or_refresh_token
 	 * @param $redirect_uri
 	 *
+	 * @throws \Exception
 	 * @return array|mixed|string
 	 */
-	public function getToken($grant_type, $client_id, $client_secret, $code_or_refresh_token, $redirect_uri) {
+	public function getToken($grant_type='refresh_token', $code_or_refresh_token=null, $client_id=null, $client_secret=null, $redirect_uri=null) {
+		//Set
+		$client_id and ($this->client_id = $client_id);
+		$client_secret and ($this->client_secret = $client_secret);
+		$redirect_uri and ($this->redirect_uri = $redirect_uri);
+		//Set and Check
+		if ($grant_type === 'refresh_token') {
+			$code_or_refresh_token and ($this->refresh_token = $code_or_refresh_token);
+			if (! $this->refresh_token)
+				throw new \Exception('Error: '. 'refresh_token');
+		} elseif ($grant_type === 'authorization_code') {
+			if (!$code_or_refresh_token)
+				throw new \Exception('Error: '. 'authorization_code');
+		} else {
+			throw new \Exception('Error: '. 'grant_type');
+		}
+		//Check
+		if (! $this->client_id) {
+			throw new \Exception('Error: '. 'client_id');
+		} elseif (! $this->client_secret) {
+			throw new \Exception('Error: '. 'client_secret');
+		} elseif (! $this->redirect_uri) {
+			throw new \Exception('Error: '. 'redirect_uri');
+		}
+
 		/**
 		 * grant_type           authorization_code / refresh_token (必須)
 		 * client_id            クライアントID (必須)
@@ -149,10 +184,10 @@ class BaseOAuth {
 		 */
 		$params = array(
 			'grant_type'     => $grant_type,
-			'client_id'      => $client_id,
-			'client_secret'  => $client_secret,
-			($grant_type==='authorization_code')?'code':'refresh_token' => $code_or_refresh_token,
-			'redirect_uri'   => $redirect_uri
+			'client_id'      => $this->client_id,
+			'client_secret'  => $this->client_secret,
+			($grant_type==='authorization_code')?'code':'refresh_token' => ($grant_type==='authorization_code')?$code_or_refresh_token:$this->refresh_token,
+			'redirect_uri'   => $this->redirect_uri
 		);
 		$this->url = self::$host . self::OAUTH_TOKEN;
 

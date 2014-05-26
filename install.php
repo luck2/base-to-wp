@@ -125,7 +125,7 @@ debug_show_options();
 		$BaseOAuth = new \OAuth\BaseOAuth();
 		$authorize_uri = $BaseOAuth->getAuthorize(
 			$client_id = get_option('base_to_wp_client_key'),
-			$redirect_uri,
+			$redirect_uri = get_option('base_to_wp_redirect_uri'),
 			$scope = 'read_users read_users_mail read_items read_orders write_items write_orders',//使用範囲
 			$stage = 'hogehoge'
 		);
@@ -141,33 +141,36 @@ debug_show_options();
 
 	<?php if ($stage == '5') :
 
-//		var_dump($_GET['code']);
+		try {
 
-		if ($_GET['state'] !== 'debug' ) : //FIXME DEBUG
+			if ($_GET['state'] !== 'debug' ) : //FIXME DEBUG
 
-		//認可コードからaccess_token,refresh_tokenを取得して保存する
-		$BaseOAuth = new \OAuth\BaseOAuth();
-		$response = $BaseOAuth->getToken(
-			$grant_type = 'authorization_code',
-			$client_id = get_option('base_to_wp_client_key'),
-			$client_secret = get_option('base_to_wp_client_secret'),
-			$code = $_GET['code'],//FIXME Sanitize
-			$redirect_uri
-		);
-//		var_dump($response);
+				//認可コードからaccess_token,refresh_tokenを取得して保存する
+				$BaseOAuth = new \OAuth\BaseOAuth(
+					get_option('base_to_wp_client_key'),
+					get_option('base_to_wp_client_secret'),
+					get_option('base_to_wp_redirect_uri')
+				);
+				$response = $BaseOAuth->getToken(
+					$grant_type = 'authorization_code',
+					$code = $_GET['code']
+				);
+//				var_dump($response);
 
-		//FIXME DEBUG
-		else :
-			$BaseOAuth = new \OAuth\BaseOAuth();
-			$BaseOAuth->http_code = 200;
-			$response = new stdClass();
-			$response->access_token = 'debug_access_token';
-			$response->expires_in = '3600';
-			$response->refresh_token = 'debug_refresh_token';
-		endif;
-		//FIXME DEBUG
+			//FIXME DEBUG
+			else :
+				$BaseOAuth = new \OAuth\BaseOAuth();
+				$BaseOAuth->http_code = 200;
+				$response = new stdClass();
+				$response->access_token = 'debug_access_token';
+				$response->expires_in = '3600';
+				$response->refresh_token = 'debug_refresh_token';
+			endif;
+			//FIXME DEBUG
 
-		if ($BaseOAuth->http_code == 200) :
+			if ($BaseOAuth->http_code != 200)
+				throw new Exception('Error: bad response.',400);
+
 			//Update WP options
 			update_option('base_to_wp_access_token', $response->access_token);
 			update_option('base_to_wp_access_token_expires', (int) date_i18n('U') + (int) $response->expires_in);
@@ -182,18 +185,21 @@ debug_show_options();
 				3 => 'from:foo',
 				'aaa' => 'bbbb',
 			));
-		?>
+			?>
 			<h3><span style="font-size: 150%">Step 5 :</span> おめでとう！すべてが完了しました！</h3>
 			<p>あなたのBASEアカウントにアクセスするためにこのブログを承認しました。あなたのBASEショップはワードプレスと連携することができます。</p>
 			<p style="text-align:right">
 				<a class="button" href="<?php echo admin_url('admin.php?page=base_to_wp'); ?>">完了</a>
 			</p>
-		<?php else : ?>
+		<?php
+		} catch (Exception $e) {
+		?>
 			<h3>何かが間違っていた...</h3>
+			<p><?php $e->getMessage(); ?></p>
 			<p>BASE To WordPressは、あなたのBASEアカウントを認証することができませんでした。</p>
-		<?php endif; ?>
-	<?php endif; ?>
+		<?php } ?>
 
+	<?php endif; ?>
 		<br />
 		<small><a href="<?php echo $install_uri . '&reset_account=1&step=1'; ?>">[再セットアップ]</a></small>
 	</div>
