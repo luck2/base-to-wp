@@ -20,7 +20,7 @@ class ShopWidget extends WP_Widget {
 		parent::WP_Widget(false, __('BASE Shop Info'), $widget_ops);
 
 		$this->BaseOAuth = new \OAuth\BaseOAuth(
-			$client_id     = get_option('base_to_wp_client_key'),
+			$client_id     = get_option('base_to_wp_client_id'),
 			$client_secret = get_option('base_to_wp_client_secret'),
 			$redirect_uri  = get_option('base_to_wp_redirect_uri'),
 			$access_token  = get_option('base_to_wp_access_token'),
@@ -37,7 +37,6 @@ class ShopWidget extends WP_Widget {
 
 		echo $before_widget;//<div>
 		echo ( $title ) ? $before_title . $title . $after_title : '';//<h3>$title</h3>
-
 
 		$users = $this->BaseOAuth->getUsers();
 

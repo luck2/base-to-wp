@@ -21,10 +21,10 @@ $redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME DEVELOP
 list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
 
 if ($_POST) {
-	// client key 保存
+	// client id 保存
 	if ($_GET['step'] == '3') {
-		if ($_POST['base_to_wp_client_key'] != '' && $_POST['base_to_wp_client_secret'] != '') {
-			update_option('base_to_wp_client_key', $_POST['base_to_wp_client_key']);
+		if ($_POST['base_to_wp_client_id'] != '' && $_POST['base_to_wp_client_secret'] != '') {
+			update_option('base_to_wp_client_id', $_POST['base_to_wp_client_id']);
 			update_option('base_to_wp_client_secret', $_POST['base_to_wp_client_secret']);
 			update_option('base_to_wp_redirect_uri', $redirect_uri);
 		} else {
@@ -98,15 +98,15 @@ debug_show_options();
 	<?php endif;?>
 
 	<?php if ($stage == '2') : ?>
-		<h3><span style="font-size: 150%">Step 2 :</span> BASE APP で取得した Client Key と Client Secret を入力</h3>
+		<h3><span style="font-size: 150%">Step 2 :</span> BASE APP で取得した Client ID と Client Secret を入力</h3>
 		<p>BASE APIとのインターフェイスにワードプレスを有効にするには、キーを入力する必要があります。あなたは<a href="http://thebase.in/apps/" target="_blank">このBASE APPページ</a>を訪問して、前のステップで登録されたアプリケーションを選択することでそれらを見つけることができます。</p>
 		<p style="text-align:center"><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/wizard_2.png" alt="Finding the Application Keys" /></p>
-		<p><strong>Client Key</strong> と <strong>Client Secret</strong> を入力してください。</p>
+		<p><strong>Client ID</strong> と <strong>Client Secret</strong> を入力してください。</p>
 		<form method="post" action="<?php echo $next_uri . '&step=3'; ?>">
 			<table class="form-table">
 				<tr valign="top">
-					<th scope="row"><label for="base_to_wp_client_key">Client Key</label></th>
-					<td><input name="base_to_wp_client_key" type="text" id="base_to_wp_client_key" value="<?php echo get_option('base_to_wp_client_key'); ?>" class="regular-text" /></td>
+					<th scope="row"><label for="base_to_wp_client_id">Client ID</label></th>
+					<td><input name="base_to_wp_client_id" type="text" id="base_to_wp_client_id" value="<?php echo get_option('base_to_wp_client_id'); ?>" class="regular-text" /></td>
 				</tr>
 				<tr valign="top">
 					<th scope="row"><label for="base_to_wp_client_secret">Client Secret</label></th>
@@ -124,7 +124,7 @@ debug_show_options();
 		//認可コードを取得
 		$BaseOAuth = new \OAuth\BaseOAuth();
 		$authorize_uri = $BaseOAuth->getAuthorize(
-			$client_id = get_option('base_to_wp_client_key'),
+			$client_id = get_option('base_to_wp_client_id'),
 			$redirect_uri = get_option('base_to_wp_redirect_uri'),
 			$scope = 'read_users read_users_mail read_items read_orders write_items write_orders',//使用範囲
 			$stage = 'hogehoge'
@@ -147,7 +147,7 @@ debug_show_options();
 
 				//認可コードからaccess_token,refresh_tokenを取得して保存する
 				$BaseOAuth = new \OAuth\BaseOAuth(
-					get_option('base_to_wp_client_key'),
+					get_option('base_to_wp_client_id'),
 					get_option('base_to_wp_client_secret'),
 					get_option('base_to_wp_redirect_uri')
 				);

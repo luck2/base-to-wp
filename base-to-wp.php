@@ -9,11 +9,19 @@ Author URI: http://www.luck2.co.jp
 License:
 */
 
-namespace BaseToWP;
 //use SplClassLoader;
 
 define( 'BASE_TO_WP_ABSPATH', dirname( __FILE__ ) );
 define( 'BASE_TO_WP_NAMEDOMAIN', 'base-to-wp' );
+
+// BaseOAuth
+require_once BASE_TO_WP_ABSPATH . '/OAuth/BaseOAuth.php';
+//FIXME DEVELOP define BASE_HOST_DEV
+require_once BASE_TO_WP_ABSPATH . '/config.php';
+\OAuth\BaseOAuth::$host = BASE_HOST_DEV;
+
+require_once BASE_TO_WP_ABSPATH . '/BaseOAuthWP.php';
+
 
 //require BASE_TO_WP_ABSPATH . '/libs/SplClassLoader.php';
 //$class_loader_base_to_wp = new SplClassLoader('BaseToWP', dirname(__DIR__));
@@ -36,36 +44,29 @@ class BaseToWP {
 
 	public function __construct() {
 
-		require_once BASE_TO_WP_ABSPATH . '/OAuth/BaseOAuth.php';
+		// Plugin TextDomain
+		load_plugin_textdomain( self::NAME_DOMAIN, false, dirname(plugin_basename(__FILE__)).'/languages');
 
-		//FIXME DEVELOP define BASE_HOST_DEV
-		require_once BASE_TO_WP_ABSPATH . '/config.php';
-		\OAuth\BaseOAuth::$host = BASE_HOST_DEV;
+
+		//グローバル関数とか？
+//		require_once BASE_TO_WP_ABSPATH . "/functions.php";
 
 		//Register Activation Hook.
 		register_activation_hook(__FILE__, array($this, 'activate'));
 		register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+		register_uninstall_hook(__FILE__, array($this, 'uninstall'));
 
+		// Register Short Code.
+		add_shortcode('base', array($this, 'base_short_code'));
 
-		// ショートコードを設定
-//		$trend_short_code = new ShortCode();
-
-		// register widget
+		// Register widget
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ShopWidget.php";
 		add_action('widgets_init', function(){register_widget("ShopWidget");});
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ItemsWidget.php";
 		add_action('widgets_init', function(){register_widget("ItemsWidget");});
 
-
-		//TODO ショートコードとかグローバル関数とか？
-//		require_once BASE_TO_WP_ABSPATH . "/functions.php";
-
 		//#TODO jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
-
-		// Plugin TextDomain
-		load_plugin_textdomain( 'base_to_wp' );
-
 
 		//管理画面
 		add_action('init', array($this, 'install_check'));// Install check
@@ -75,6 +76,8 @@ class BaseToWP {
 		add_action('wp_head', function(){
 			//global $wp_query;var_dump($wp_query);
 		});
+
+
 	}
 
 	/**
@@ -112,46 +115,35 @@ class BaseToWP {
 		// cron schedule
 //		Cron::deactivate();
 	}
+	/**
+	 * プラグインアンインストール時
+	 */
+	public function uninstall() {
+	}
 
 	/**
 	 * メニュー画面追加
 	 */
 	public function admin_menus() {
-
-		function options_page() {
-			echo "<h2>Test Options</h2>";
+		// BASE To WP > ダッシュボード
+		add_menu_page( 'BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp', function () {
+			include BASE_TO_WP_ABSPATH . "/dashboard.php";
+		} );
+		// BASE To WP > セッティング
+		add_submenu_page( 'base_to_wp', 'BASE settings', 'Settings', 'administrator', 'base_to_wp_settings', function () {
+			include BASE_TO_WP_ABSPATH."/settings.php";
+		} );
+		// BASE To WP > インストール
+		if (!get_option( 'base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth'])) {
+			add_submenu_page( 'base_to_wp', 'BASE install', 'Install', 'administrator', 'base_to_wp_install', function () {
+				include BASE_TO_WP_ABSPATH . "/install.php";
+			} );
 		}
-		function manage_page() {
-			echo "<h2>Test Manage</h2>";
-		}
 
-		/**
-		 * 管理画面トップ
-		 */
-		function dashboard() {
-			include_once BASE_TO_WP_ABSPATH . "/dashboard.php";
-		}
-
-
-		/**
-		 * 管理画面　インストール
-		 */
-			function install() {
-				include_once BASE_TO_WP_ABSPATH . "/install.php";
-			}
-
-
-		// 設定メニュー下にサブメニューを追加:
-//		add_options_page('Test Options', 'Test Options', 'administrator', 'test-options', '\BaseToWP\options_page');
+		// 設定メニュー下にサブメニューを追加
+//		add_options_page('Test Options', 'Test Options', 'administrator', 'test-options', function(){ echo "<h2>Test Options</h2>"; });
 		// 管理メニューにサブメニューを追加
-//		add_management_page('Test Manage', 'Test Manage', 'administrator', 'test-manage', '\BaseToWP\manage_page');
-		// 新しいトップレベルメニューを追加
-		add_menu_page('BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp', '\BaseToWP\dashboard');
-		// カスタムのトップレベルメニューにサブメニューを追加
-		add_submenu_page('base_to_wp', 'BASE settings', 'Settings', 'administrator', 'base_to_wp_settings', '\BaseToWP\settings');
-		// カスタムのトップレベルメニューに二つ目のサブメニューを追加
-		if (!get_option('base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth']))
-			add_submenu_page('base_to_wp', 'BASE install', 'Install', 'administrator', 'base_to_wp_install', '\BaseToWP\install');
+//		add_management_page('Test Manage', 'Test Manage', 'administrator', 'test-manage', function(){ echo "<h2>Test Manage</h2>";});
 
 	}
 
@@ -169,12 +161,43 @@ class BaseToWP {
 		}
 	}
 
-}
+
+	/**
+	 * ショートコード
+	 *
+	 * @param array $atts
+	 * @return string
+	 */
+	public function base_short_code($atts)
+	{
+		error_reporting(E_ALL);//FIXME DEBUG
+		ini_set( 'display_errors', 1 );
 
 
-/**
- * 管理画面　セッティング
- */
-function settings() {
-	include_once BASE_TO_WP_ABSPATH . "/settings.php";
+		$foo='';$bar='';
+		extract(shortcode_atts(array(
+			'foo' => 'something',
+			'bar' => 'something else',
+		), $atts));
+
+		try {
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+
+			$response = $BaseOAuthWP->getItems();
+			if ( $BaseOAuthWP->http_code == 400 )
+				throw new Exception( '400 Bad Request.', 400 );
+
+			var_dump($response);
+
+//		$BaseOAuthWP->render_list();
+			return sprintf('foo = %s, bar = %s', $foo, $bar);//FIXME
+
+		} catch ( Exception $e ) {
+			return $e->getMessage();
+		}
+
+	}
+
+
 }

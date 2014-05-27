@@ -75,6 +75,7 @@ class BaseOAuth {
 	public $access_token = null;
 	public $refresh_token = null;
 
+
 	/* Contains the last API call. */
 	public $url = null;
 	/* Contains the last HTTP status code returned. */
@@ -91,7 +92,6 @@ class BaseOAuth {
 		$this->refresh_token = $refresh_token;
 	}
 
-
 	/**
 	 * GET /1/oauth/authorize - 認可コードを取得
 	 *
@@ -100,6 +100,7 @@ class BaseOAuth {
 	 * @param null $scope
 	 * @param null $state
 	 *
+	 * @throws \Exception
 	 * @return string
 	 * @internal param $params
 	 */

@@ -21,7 +21,7 @@ class ItemsWidget extends WP_Widget {
 
 
 		$this->BaseOAuth = new \OAuth\BaseOAuth(
-			$client_id     = get_option('base_to_wp_client_key'),
+			$client_id     = get_option('base_to_wp_client_id'),
 			$client_secret = get_option('base_to_wp_client_secret'),
 			$redirect_uri  = get_option('base_to_wp_redirect_uri'),
 			$access_token  = get_option('base_to_wp_access_token'),
