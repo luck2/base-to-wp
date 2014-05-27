@@ -191,15 +191,20 @@ class BaseOAuth {
 		);
 		$this->url = self::$host . self::OAUTH_TOKEN;
 
-		$response = $this->_post($this->url, $params);
 		/**
 		 * access_token - APIにアクセスするために必要なトークン。有効期限は1時間。
 		 * token_type - bearer
 		 * expires_in - アクセストークンの有効期限
 		 * refresh_token - アクセストークンを再発行するために必要なトークン。有効期限は30日。
 		 */
-		if ($response)
+		$response = $this->_post($this->url, $params);
+
+		if ($response) {
 			$response = json_decode($response);
+			//Set
+			$this->access_token = $response->access_token;
+			$this->refresh_token = $response->refresh_token;
+		}
 
 		return $response;
 	}

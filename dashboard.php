@@ -45,7 +45,6 @@ try {
 //		echo '<hr>' . date('Y/m/d H:i:s', get_option('base_to_wp_access_token_expires'));;
 //		echo '<hr>' . date('Y/m/d H:i:s', get_option('base_to_wp_refresh_token_expires'));;
 	}
-
 ?>
 	<h3>BASEショップ情報</h3>
 	<?php
