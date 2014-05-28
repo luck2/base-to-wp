@@ -6,6 +6,10 @@
  * Time: 22:17
  */
 
+ini_set('display_errors', true);
+error_reporting(E_ALL);
+
+
 $reset_account_uri = admin_url('admin.php?page=base_to_wp_install&reset_account=1&step=1');
 
 
@@ -21,41 +25,25 @@ try {
 	$BaseOAuthWP->checkToken();
 
 	$user = $BaseOAuthWP->getUsers();
-	$items = $BaseOAuthWP->getItems(array());
-	$item = $BaseOAuthWP->getItems($id);
+	$items = $BaseOAuthWP->getItems();
+	$item = $BaseOAuthWP->getItems($id=26371);
 
 	?>
 	<h3>BASEショップ情報</h3>
-	<?php
-	//var_dump($user);
-	?>
-	<dl>
-		<?php
-		foreach ( $user as $key => $value ) :
-			if ($key==='logo') $value = '<img src="'.$value.'" style="width: 300px;" />';
-			?>
-			<dt><?php echo $key; ?></dt>
-			<dd><?php echo $value; ?></dd>
-		<?php endforeach; ?>
-	</dl>
+	<?php $BaseOAuthWP->render_list($user); ?>
 	<hr/>
 
 	<h3>商品情報</h3>
 	<h4>一覧</h4>
-	<?php
-	$BaseOAuthWP->render_list($items);//FIXME
-	?>
-	<h4>個別(ID:<?php echo $id=26371;?>)</h4>
-	<?php
-	$BaseOAuthWP->render_list($item);//FIXME
-
-	?>
+	<?php $BaseOAuthWP->render_list($items); ?>
+	<hr/>
+	<h4>個別(ID:<?php echo $id;?>)</h4>
+	<?php $BaseOAuthWP->render_list($item); ?>
+	<hr/>
 
 	<h3>カテゴリー情報の一覧</h3>
 	<h3>商品のカテゴリー情報</h3>
 	<h3>注文情報の一覧</h3>
-
-
 	<h3>引き出し申請情報</h3>
 
 

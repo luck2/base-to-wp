@@ -232,9 +232,9 @@ class BaseOAuth {
 	 * GET /1/items - 商品情報の一覧を取得
 	 * GET /1/items/detail/:item_id - 商品情報を取得
 	 *
-	 * @param null $id
-	 * @param array $params
+	 * @param array string $params
 	 *
+	 * @internal param null $id
 	 * @return mixed
 	 */
 	public function getItems($params=array()) {
@@ -378,16 +378,18 @@ class BaseOAuth {
 	}
 
 
-	public function render_list($response=null) {
+	public function render_list($response=null, $return=false) {
+		//Set
+		is_null($response) and ($response = $this->response);
 
-		//jsonならobjectにparse
-		!$response and ($response = $this->response);
-		if (!is_object($response)) {
+		//jsonならobjectにparse　FIXME 判定めんどいだれか
+		if (is_string($response)) {
 			$response = self::json_parse($response);
 		}
-//		var_dump($response);
 
-		if (! is_array($response) ) $response = array($response);
+		( !is_array($response) ) and ( $response = array($response) );
+
+		ob_start();
 
 		//TODO 再帰構造にする
 		foreach ( $response as $resp ) :
@@ -412,6 +414,14 @@ class BaseOAuth {
 			</dl>
 		<?php
 		endforeach;
+
+		if ($return) {
+			$body = ob_get_contents();
+			ob_end_clean();
+			return $body;
+		} else {
+			return ob_end_flush();
+		}
 	}
 
 	public static function json_parse($response){

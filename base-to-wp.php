@@ -47,7 +47,6 @@ class BaseToWP {
 		// Plugin TextDomain
 		load_plugin_textdomain( self::NAME_DOMAIN, false, dirname(plugin_basename(__FILE__)).'/languages');
 
-
 		//グローバル関数とか？
 //		require_once BASE_TO_WP_ABSPATH . "/functions.php";
 
