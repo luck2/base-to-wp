@@ -187,10 +187,7 @@ class BaseToWP {
 			if ( $BaseOAuthWP->http_code == 400 )
 				throw new Exception( '400 Bad Request.', 400 );
 
-			var_dump($response);
-
-//		$BaseOAuthWP->render_list();
-			return sprintf('foo = %s, bar = %s', $foo, $bar);//FIXME
+			return $BaseOAuthWP->render_list(null,true);
 
 		} catch ( Exception $e ) {
 			return $e->getMessage();

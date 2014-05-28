@@ -397,19 +397,17 @@ class BaseOAuth {
 			<dl>
 		<?php
 			foreach ( $resp as $key => $value ) :
-				if (preg_match('#(.jpg|.png)$#', $value, $matches))
+				if ( is_string($value) && preg_match('#(.jpg|.png)$#', $value, $matches) )
 					$value = '<img src="'.$value.'" style="width: 200px;" />';
 				?>
 				<dt><?php echo $key; ?></dt>
-				<dd>
-				<?php
+				<dd><?php
 					if (is_array($value)) {
 						print_r($value);
 					} else {
 						echo $value;
 					}
-				?>
-				</dd>
+				?></dd>
 		<?php endforeach; ?>
 			</dl>
 		<?php
