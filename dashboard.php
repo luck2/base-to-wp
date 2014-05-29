@@ -6,15 +6,15 @@
  * Time: 22:17
  */
 
+#TODO DEBUG
 ini_set('display_errors', true);
 error_reporting(E_ALL);
+debug_show_options();
 
 
 $reset_account_uri = admin_url('admin.php?page=base_to_wp_install&reset_account=1&step=1');
 
 
-#TODO DEBUG
-debug_show_options();
 ?>
 <h2><?php _e('BASE To WordPress Dashboard', BASE_TO_WP_NAMEDOMAIN); ?></h2>
 <?php

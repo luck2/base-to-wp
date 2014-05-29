@@ -6,7 +6,11 @@
  * Time: 13:21
  */
 
+//TODO DEBUG
+ini_set('display_errors', true);
 error_reporting(E_ALL);
+debug_show_options();
+
 
 // $_GET initialize
 empty($_GET['step']) and $_GET['step'] = '1';
@@ -49,11 +53,8 @@ if ($stage == '') {
 	add_option('base_to_wp_install_stage', '1');
 	$stage = '1';
 }
-
 //var_dump($stage);
 
-//TODO DEBUG
-debug_show_options();
 
 ?>
 

@@ -169,8 +169,9 @@ class BaseToWP {
 	 */
 	public function base_short_code($atts)
 	{
-		error_reporting(E_ALL);//FIXME DEBUG
-		ini_set( 'display_errors', 1 );
+		#TODO DEBUG
+		ini_set('display_errors', true);
+		error_reporting(E_ALL);
 
 
 		$foo='';$bar='';
