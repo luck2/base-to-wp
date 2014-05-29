@@ -210,7 +210,7 @@ class BaseOAuth {
 		return $response;
 	}
 
-	public function getUsers($access_token=null) {
+	public function getUsers() {
 
 		$this->url = self::build_url(self::USERS_ME);
 
@@ -232,7 +232,7 @@ class BaseOAuth {
 	 * GET /1/items - 商品情報の一覧を取得
 	 * GET /1/items/detail/:item_id - 商品情報を取得
 	 *
-	 * @param array string $params
+	 * @param array $params
 	 *
 	 * @internal param null $id
 	 * @return mixed

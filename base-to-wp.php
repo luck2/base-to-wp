@@ -27,7 +27,7 @@ require_once BASE_TO_WP_ABSPATH . '/BaseOAuthWP.php';
 //$class_loader_base_to_wp = new SplClassLoader('BaseToWP', dirname(__DIR__));
 //$class_loader_base_to_wp->register();
 
-$base_to_wp = new BaseToWP();
+$BaseToWP = new BaseToWP();
 
 /**
  * Class BaseToWP
@@ -56,13 +56,14 @@ class BaseToWP {
 		register_uninstall_hook(__FILE__, array($this, 'uninstall'));
 
 		// Register Short Code.
-		add_shortcode('base', array($this, 'base_short_code'));
+		require_once BASE_TO_WP_ABSPATH . '/ShortCode.php';
+		add_shortcode('base', array($ShortCode= new \BaseToWP\ShortCode(), 'base'));
 
 		// Register widget
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ShopWidget.php";
-		add_action('widgets_init', function(){register_widget("ShopWidget");});
+		add_action('widgets_init', function(){ register_widget('BaseToWPShopWidget'); });
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ItemsWidget.php";
-		add_action('widgets_init', function(){register_widget("ItemsWidget");});
+		add_action('widgets_init', function(){ register_widget('BaseToWPItemsWidget'); });
 
 		//#TODO jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
@@ -160,41 +161,6 @@ class BaseToWP {
 		}
 	}
 
-
-	/**
-	 * ショートコード
-	 *
-	 * @param array $atts
-	 * @return string
-	 */
-	public function base_short_code($atts)
-	{
-		#TODO DEBUG
-		ini_set('display_errors', true);
-		error_reporting(E_ALL);
-
-
-		$foo='';$bar='';
-		extract(shortcode_atts(array(
-			'foo' => 'something',
-			'bar' => 'something else',
-		), $atts));
-
-		try {
-			$BaseOAuthWP = new BaseOAuthWP();
-			$BaseOAuthWP->checkToken();
-
-			$response = $BaseOAuthWP->getItems();
-			if ( $BaseOAuthWP->http_code == 400 )
-				throw new Exception( '400 Bad Request.', 400 );
-
-			return $BaseOAuthWP->render_list(null,true);
-
-		} catch ( Exception $e ) {
-			return $e->getMessage();
-		}
-
-	}
 
 
 }

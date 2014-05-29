@@ -6,28 +6,17 @@
  * Time: 22:24
  */
 
+//namespace BaseToWP;//TODO register_widget('ClassName') で呼び出すクラスはnamespase使えないmeta character がダメっぽい
 
 /**
- * Class ShopWidget
+ * Class BaseToWPItemsWidget
  */
-class ItemsWidget extends WP_Widget {
-
-	private $BaseOAuth;
+class BaseToWPItemsWidget extends \WP_Widget {
 
 	/** constructor */
 	public function __construct() {
 		$widget_ops = array( 'classname' => 'widget_base_items', 'description' => __( "BASEショップの商品一覧" ) );
-		parent::WP_Widget(false, __('BASE Shop Items'), $widget_ops);
-
-
-		$this->BaseOAuth = new \OAuth\BaseOAuth(
-			$client_id     = get_option('base_to_wp_client_id'),
-			$client_secret = get_option('base_to_wp_client_secret'),
-			$redirect_uri  = get_option('base_to_wp_redirect_uri'),
-			$access_token  = get_option('base_to_wp_access_token'),
-			$refresh_token = get_option('base_to_wp_refresh_token')
-		);
-
+		parent::__construct(false, __('BASE Shop Items'), $widget_ops);
 	}
 
 	/** @see WP_Widget::widget */
@@ -39,21 +28,24 @@ class ItemsWidget extends WP_Widget {
 		echo $before_widget;//<div>
 		echo ( $title ) ? $before_title . $title . $after_title : '';//<h3>$title</h3>
 
-		$items = $this->BaseOAuth->getItems();
-//		var_dump($items);
-//		$this->BaseOAuth->render_list();
+		try {
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+			$items = $BaseOAuthWP->getItems();
 
-		foreach ( $items as $item ) :
-		?>
-			<h4><?php _e($item->title, BASE_TO_WP_NAMEDOMAIN); ?></h4>
-			<a href="<?php esc_attr_e("http://sample.com/items/".$item->item_id);/*FIXME url*/ ?>"><img src="<?php esc_attr_e($item->img1_origin); ?>" alt="item photo"/></a>
-			<p><?php echo sprintf( __('Price: %d', BASE_TO_WP_NAMEDOMAIN), $item->price); ?></p>
-			<hr/>
-		<?php
-		endforeach;
+			foreach ( $items as $item ) :
+				?>
+				<h4><?php _e($item->title, BASE_TO_WP_NAMEDOMAIN); ?></h4>
+				<a href="<?php esc_attr_e("http://sample.com/items/".$item->item_id);/*FIXME url*/ ?>"><img src="<?php esc_attr_e($item->img1_origin); ?>" alt="item photo"/></a>
+				<p><?php echo sprintf( __('Price: %d', BASE_TO_WP_NAMEDOMAIN), $item->price); ?></p>
+				<hr/>
+			<?php
+			endforeach;
 
-	?>
-	<?php
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+		}
+
 		echo $after_widget;//<div>
 	}
 
@@ -64,18 +56,25 @@ class ItemsWidget extends WP_Widget {
 
 	/** @see WP_Widget::form */
 	public function form($instance) {
+		try {
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+			$users = $BaseOAuthWP->getUsers();
 
-		$users = $this->BaseOAuth->getUsers();
+			$title = ($instance['title']) ?: $users->shop_name;
+			?>
+			<p>
+				<label for="<?php echo $this->get_field_id('title'); ?>">
+					<?php _e('Title:'); ?>
+					<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($title); ?>" />
+				</label>
+			</p>
+			<?php
 
-		$title = ($instance['title']) ?: $users->shop_name;
-		?>
-		<p>
-			<label for="<?php echo $this->get_field_id('title'); ?>">
-				<?php _e('Title:'); ?>
-				<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($title); ?>" />
-			</label>
-		</p>
-	<?php
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+		}
+
 	}
 
 }

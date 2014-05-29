@@ -6,27 +6,18 @@
  * Time: 22:24
  */
 
+//namespace BaseToWP;//TODO register_widget('ClassName') で呼び出すクラスはnamespase使えないmeta character がダメっぽい
 
 /**
- * Class ShopWidget
+ * Class BaseToWPShopWidget
  */
-class ShopWidget extends WP_Widget {
+class BaseToWPShopWidget extends \WP_Widget {
 
-	private $BaseOAuth;
 
 	/** constructor */
 	public function __construct() {
 		$widget_ops = array( 'classname' => 'widget_base_shop', 'description' => __( "BASEショップへのロゴと説明を表示します" ) );
-		parent::WP_Widget(false, __('BASE Shop Info'), $widget_ops);
-
-		$this->BaseOAuth = new \OAuth\BaseOAuth(
-			$client_id     = get_option('base_to_wp_client_id'),
-			$client_secret = get_option('base_to_wp_client_secret'),
-			$redirect_uri  = get_option('base_to_wp_redirect_uri'),
-			$access_token  = get_option('base_to_wp_access_token'),
-			$refresh_token = get_option('base_to_wp_refresh_token')
-		);
-
+		parent::__construct(false, __('BASE Shop Info'), $widget_ops);
 	}
 
 	/** @see WP_Widget::widget */
@@ -38,15 +29,19 @@ class ShopWidget extends WP_Widget {
 		echo $before_widget;//<div>
 		echo ( $title ) ? $before_title . $title . $after_title : '';//<h3>$title</h3>
 
-		$users = $this->BaseOAuth->getUsers();
+		try {
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+			$users = $BaseOAuthWP->getUsers();
+		?>
+			<a href="<?php esc_attr_e($users->shop_url); ?>"><img src="<?php esc_attr_e($users->logo); ?>" alt="logo" style="width: 100%;"/></a>
+			<!--		<p>--><?php //esc_html_e($users->shop_name); ?><!--</p>-->
+			<p><?php esc_html_e($users->shop_introduction); ?></p>
+		<?php
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+		}
 
-//		var_dump($users);
-//		$BaseOAuth->render_list();
-	?>
-		<a href="<?php esc_attr_e($users->shop_url); ?>"><img src="<?php esc_attr_e($users->logo); ?>" alt="logo" style="width: 100%;"/></a>
-<!--		<p>--><?php //esc_html_e($users->shop_name); ?><!--</p>-->
-		<p><?php esc_html_e($users->shop_introduction); ?></p>
-	<?php
 		echo $after_widget;//<div>
 	}
 
@@ -57,18 +52,23 @@ class ShopWidget extends WP_Widget {
 
 	/** @see WP_Widget::form */
 	public function form($instance) {
+		try {
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+			$users = $BaseOAuthWP->getUsers();
 
-		$users = $this->BaseOAuth->getUsers();
-
-		$title = ($instance['title']) ?: $users->shop_name;
-		?>
-		<p>
-			<label for="<?php echo $this->get_field_id('title'); ?>">
-				<?php _e('Title:'); ?>
-				<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($title); ?>" />
-			</label>
-		</p>
-	<?php
+			$title = ($instance['title']) ?: $users->shop_name;
+			?>
+			<p>
+				<label for="<?php echo $this->get_field_id('title'); ?>">
+					<?php _e('Title:'); ?>
+					<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php esc_attr_e($title); ?>" />
+				</label>
+			</p>
+			<?php
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+		}
 	}
 
 }
