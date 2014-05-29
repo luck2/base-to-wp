@@ -6,79 +6,125 @@
  * Time: 13:21
  */
 
-//TODO DEBUG
-ini_set('display_errors', true);
-error_reporting(E_ALL);
-debug_show_options();
 
 
 // $_GET initialize
-empty($_GET['step']) and $_GET['step'] = '1';
-empty($_GET['oauth']) and $_GET['oauth'] = null;
+//BASE API 認可コードのリダイレクトを受けた場合はStep5 それ以外は$_GET['step']がある場合は$_GET['step']ない場合はOptionから取得
+$_GET['step'] = ( isset($_GET['state']) && $_GET['state'] === 'oauth' ) ?
+	'5' :
+	( isset($_GET['step']) ? $_GET['step'] : get_option('base_to_wp_install_stage','1') );
 empty($_GET['reset_account']) and $_GET['reset_account'] = null;
-//var_dump($_GET);
 
 $admin_uri = admin_url('admin.php');
 $install_uri = admin_url('admin.php?page=base_to_wp_install');
-$redirect_uri = $install_uri . '&step=5&oauth=1';
+$redirect_uri = $install_uri;
 $redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME DEVELOP
 list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
+$message='';$user=null;
+//TODO DEBUG
+ini_set('display_errors', true);
+error_reporting(E_ALL);
+debug_base();
 
-if ($_POST) {
-	// client id 保存
-	if ($_GET['step'] == '3') {
-		if ($_POST['base_to_wp_client_id'] != '' && $_POST['base_to_wp_client_secret'] != '') {
-			update_option('base_to_wp_client_id', $_POST['base_to_wp_client_id']);
-			update_option('base_to_wp_client_secret', $_POST['base_to_wp_client_secret']);
-			update_option('base_to_wp_redirect_uri', $redirect_uri);
-		} else {
-			$_GET['step'] = '2';
-		}
+
+
+try {
+
+	switch ($_GET['step']) :
+		case '1':
+			if (get_option('base_to_wp_account_activated') != '1') {
+				$message .= "BASE APIのDeveloper登録を完了してください。";
+			} elseif (isset($_GET['reset_account'])) {
+				$message .= "BASE APIクライアント登録が完了している場合は同じクライアントが使用できます。「Step1」をスキップして次のステップへ進んでください。";
+			}
+			break;
+		case '2':
+			break;
+		case '3':
+			// client id 保存
+			if (isset($_POST['submit'])) {
+				update_option('base_to_wp_client_secret', $_POST['base_to_wp_client_secret']);
+				update_option('base_to_wp_client_id', $_POST['base_to_wp_client_id']);
+				update_option('base_to_wp_redirect_uri', $redirect_uri);
+				if ($_POST['base_to_wp_client_id'] === '') {
+					$_GET['step'] = '2';
+					$message .= "Client ID を入力してください。<br>";
+				}
+				if ($_POST['base_to_wp_client_secret'] === '') {
+					$_GET['step'] = '2';
+					$message .= "Client Secret を入力してください。<br>";
+				}
+			}
+
+			//認可コードを取得
+			$BaseOAuthWP = new BaseOAuthWP();
+			$authorize_uri = $BaseOAuthWP->getAuthorize(
+				null, null,
+				$scope = 'read_users read_users_mail read_items read_orders write_items write_orders read_savings',//使用範囲
+				$stage = 'oauth'
+			);
+			break;
+		case '4':
+			break;
+		case '5':
+			if ( isset($_GET['code']) ) {
+				//code=xxxxxxxxxxxxxxxxxxxx&state=oauth
+				//FIXME 認可コードからaccess_token,refresh_tokenを取得して保存する
+				$BaseOAuthWP = new BaseOAuthWP();
+				$tokens = $BaseOAuthWP->getToken('authorization_code', $_GET['code']);
+
+				//ショップ情報取得
+				$user = $BaseOAuthWP->getUsers();
+
+				//Update WP options
+				//初期設定
+				update_option("base_to_wp_shop_info", (array)$user);
+
+				update_option('base_to_wp_account_activated', '1');
+
+			} else {
+				//error=access_denied&error_description=user_reject&state=oauth
+				throw new \Exception('Error: user_reject');
+			}
+
+
+			break;
+	endswitch;
+
+} catch (Exception $e) {
+//	echo '<pre>';
+//	var_dump($e);
+//	echo '</pre>';
+	if ($_GET['step'] === '5') {
+		$error_comment = '<p>BASE To WordPressは、あなたのBASEアカウントを認証することができませんでした。</p>';
 	}
 }
 
-//BASE API 認可コードのリダイレクト
-if ($_GET['oauth']=='1') {
-	$_GET['step'] = '5';
-}
-
-// Step 保存
-if ($_GET['step']) {
-	update_option('base_to_wp_install_stage', $_GET['step']);
-}
+//Update stage
+update_option('base_to_wp_install_stage', $_GET['step']);
 
 // Stage 呼び出し
 $stage = get_option('base_to_wp_install_stage');
-if ($stage == '') {
-	add_option('base_to_wp_install_stage', '1');
-	$stage = '1';
-}
 //var_dump($stage);
-
-
 ?>
 
 
 <div class="wrap">
 	<h2>BASE To WordPress Setup</h2>
 
-	<?php
-	if (get_option('base_to_wp_account_activated') != '1' && $_GET['step'] == '1' ) {
-		$message = "BASE APIのDeveloper登録を完了してください。";
-	} elseif (isset($_GET['reset_account']) && $_GET['step']==='1') {
-		$message = "BASE APIクライアント登録が完了している場合は同じクライアントが使用できます。「Step1」をスキップして次のステップへ進んでください。";
-	}
-	?>
-	<?php if ( isset($message) ) : ?>
+	<?php if ( $message ) : ?>
 		<div id="message" class="updated fade">
 			<p><?php _e($message, BASE_TO_WP_NAMEDOMAIN); ?></p>
 		</div>
 	<?php endif; ?>
 
 	<div style="width: 70%;">
+	<?php if ( isset($e) ) : ?>
+		<h3>何かが間違っていた...</h3>
+		<p><?php _e($e->getMessage(), BASE_TO_WP_NAMEDOMAIN); ?></p>
+		<?php echo ($error_comment) ? __($error_comment, BASE_TO_WP_NAMEDOMAIN) :''; ?>
 
-	<?php if ($stage == '1') : ?>
-
+	<?php elseif ($stage == '1') : ?>
 		<h3><span style="font-size: 150%">Step 1 :</span> このブログをBASE API クライアントとして登録してください</h3>
 		<p>セキュリティ上の理由から、BASE To WordPress はあなたのBASEアカウントを認証し、アクセスするためにBASE APIのOAuthのプロトコルを使用しています。それを動作させるためには、BASE API のクライアントとしてあなたのサイトを登録する必要があります。BASE.inにアクセスし、クライアント登録するには、以下のボタンをクリックしてください。</p>
 		<p style="text-align:center"><a class="button" href="http://apps.thebase.in/" target="_blank">BASE API クライアント登録</a></p>
@@ -94,11 +140,9 @@ if ($stage == '') {
 			<li>読み書きするアクセスオプションを設定します。</li>
 			<li>アプリケーションの設定を保存し、セットアップを続行するためにこのページに戻って来てください。</li>
 		</ol>
-
 		<p style="text-align:right"><a class="button" href="<?php echo $next_uri . '&step=2'; ?>">次へ進む</a></p>
-	<?php endif;?>
 
-	<?php if ($stage == '2') : ?>
+	<?php elseif ($stage == '2') : ?>
 		<h3><span style="font-size: 150%">Step 2 :</span> BASE APP で取得した Client ID と Client Secret を入力</h3>
 		<p>BASE APIとのインターフェイスにワードプレスを有効にするには、キーを入力する必要があります。あなたは<a href="http://thebase.in/apps/" target="_blank">このBASE APPページ</a>を訪問して、前のステップで登録されたアプリケーションを選択することでそれらを見つけることができます。</p>
 		<p style="text-align:center"><img src="<?php echo plugin_dir_url(__FILE__) ?>/images/wizard_2.png" alt="Finding the Application Keys" /></p>
@@ -114,93 +158,28 @@ if ($stage == '') {
 					<td><input name="base_to_wp_client_secret" type="text" id="base_to_wp_client_secret" value="<?php echo get_option('base_to_wp_client_secret'); ?>" class="regular-text" /></td>
 				</tr>
 			</table>
-			<input type="hidden" name="save_app_keys" value="yes" />
-			<p class="submit" style="text-align:right"><input type="submit" name="Submit" class="button-primary" value="保存して次へ" /></p>
+			<p class="submit" style="text-align:right"><input type="submit" name="submit" class="button-primary" value="保存して次へ" /></p>
 		</form>
-	<?php endif ?>
+	<?php elseif ($stage == '3') : ?>
 
-	<?php
-	if ($stage == '3') :
-
-		//認可コードを取得
-		$BaseOAuth = new \OAuth\BaseOAuth();
-		$authorize_uri = $BaseOAuth->getAuthorize(
-			$client_id = get_option('base_to_wp_client_id'),
-			$redirect_uri = get_option('base_to_wp_redirect_uri'),
-			$scope = 'read_users read_users_mail read_items read_orders write_items write_orders',//使用範囲
-			$stage = 'hogehoge'
-		);
-	?>
+		<?php if (! $e) : ?>
 		<h3><span style="font-size: 150%">Step 4 :</span> BASE アカウントの認証</h3>
 		<p>もう少し！今すぐあなたのBASEアカウントにアクセスできるようにあなたのブログを承認する必要があります。</p>
 		<p>下のボタンをクリックすると、api.thebase.in へ移動します。あなたがすでにログインしている場合は、あなたのブログを認可するためのオプションが表示されます。「アプリを認証する」ボタンを押して、自動でここへ戻って来ます。</p>
 		<p style="text-align:center">
 			<a href="<?php echo $authorize_uri; ?>" class="button">BASE API おーそりぼたん</a>
-			　/　<a href="<?php echo $admin_uri . '?page=base_to_wp_install&step=5&oauth=1&code=111&state=debug'; ?>" class="button">#DEBUG BASE API おーそりが成功したていぼたん</a>
 		</p>
-	<?php endif; ?>
+		<?php endif; ?>
 
-	<?php if ($stage == '5') :
-
-		try {
-
-			if ($_GET['state'] !== 'debug' ) : //FIXME DEBUG
-
-				//認可コードからaccess_token,refresh_tokenを取得して保存する
-				$BaseOAuth = new \OAuth\BaseOAuth(
-					get_option('base_to_wp_client_id'),
-					get_option('base_to_wp_client_secret'),
-					get_option('base_to_wp_redirect_uri')
-				);
-				$response = $BaseOAuth->getToken(
-					$grant_type = 'authorization_code',
-					$code = $_GET['code']
-				);
-//				var_dump($response);
-
-			//FIXME DEBUG
-			else :
-				$BaseOAuth = new \OAuth\BaseOAuth();
-				$BaseOAuth->http_code = 200;
-				$response = new stdClass();
-				$response->access_token = 'debug_access_token';
-				$response->expires_in = '3600';
-				$response->refresh_token = 'debug_refresh_token';
-			endif;
-			//FIXME DEBUG
-
-			if ($BaseOAuth->http_code != 200)
-				throw new Exception('Error: bad response.',400);
-
-			//Update WP options
-			update_option('base_to_wp_access_token', $response->access_token);
-			update_option('base_to_wp_access_token_expires', (int) date_i18n('U') + (int) $response->expires_in);
-			update_option('base_to_wp_refresh_token', $response->refresh_token);
-			update_option('base_to_wp_refresh_token_expires', (int) date_i18n('U') + (60 * 60 * 24 * 30) - 10);//30日後まで
-			update_option('base_to_wp_account_activated', '1');
-			//初期設定
-			update_option("base_to_wp_hogehoge", '0');
-			update_option('base_to_wp_piyopiyo', array(
-				1 => 'bar',
-				2 => get_bloginfo('name'),
-				3 => 'from:foo',
-				'aaa' => 'bbbb',
-			));
-			?>
-			<h3><span style="font-size: 150%">Step 5 :</span> おめでとう！すべてが完了しました！</h3>
-			<p>あなたのBASEアカウントにアクセスするためにこのブログを承認しました。あなたのBASEショップはワードプレスと連携することができます。</p>
-			<p style="text-align:right">
-				<a class="button" href="<?php echo admin_url('admin.php?page=base_to_wp'); ?>">完了</a>
-			</p>
-		<?php
-		} catch (Exception $e) {
-		?>
-			<h3>何かが間違っていた...</h3>
-			<p><?php $e->getMessage(); ?></p>
-			<p>BASE To WordPressは、あなたのBASEアカウントを認証することができませんでした。</p>
-		<?php } ?>
+	<?php elseif ($stage == '5') : ?>
+		<h3><span style="font-size: 150%">Step 5 :</span> おめでとう！すべてが完了しました！</h3>
+		<p>あなたのBASEアカウントにアクセスするためにこのブログを承認しました。あなたのBASEショップ<?php esc_html_e("（{$user->shop_name}）"); ?>はワードプレスと連携することができます。</p>
+		<p style="text-align:right">
+			<a class="button" href="<?php echo admin_url('admin.php?page=base_to_wp'); ?>">完了</a>
+		</p>
 
 	<?php endif; ?>
+
 		<br />
 		<small><a href="<?php echo $install_uri . '&reset_account=1&step=1'; ?>">[再セットアップ]</a></small>
 	</div>

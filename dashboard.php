@@ -9,7 +9,7 @@
 #TODO DEBUG
 ini_set('display_errors', true);
 error_reporting(E_ALL);
-debug_show_options();
+debug_base();
 
 
 $reset_account_uri = admin_url('admin.php?page=base_to_wp_install&reset_account=1&step=1');
@@ -28,28 +28,33 @@ try {
 	$items = $BaseOAuthWP->getItems();
 	$item = $BaseOAuthWP->getItems($id=26371);//FIXME getItem()にしようかな
 
+	$orders = $BaseOAuthWP->getOrders();
+	$order = $BaseOAuthWP->getOrder($unique_key='BA344A40D231FF5B');
+
+	$savings = $BaseOAuthWP->getSavings($param=array());
+
 	?>
 	<h3>BASEショップ情報</h3>
 	<?php $BaseOAuthWP->render_list($user); ?>
-	<hr/>
-
 	<h3>商品情報</h3>
 	<h4>一覧</h4>
 	<?php $BaseOAuthWP->render_list($items); ?>
-	<hr/>
 	<h4>個別(ID:<?php echo $id;?>)</h4>
 	<?php $BaseOAuthWP->render_list($item); ?>
-	<hr/>
 
 	<h3>カテゴリー情報の一覧</h3>
 	<h3>商品のカテゴリー情報</h3>
 	<h3>注文情報の一覧</h3>
+	<?php $BaseOAuthWP->render_list($orders); ?>
+	<h3>注文情報詳細</h3>
+	<?php $BaseOAuthWP->render_list($order); ?>
+
 	<h3>引き出し申請情報</h3>
-
-
+	<?php $BaseOAuthWP->render_list($savings); ?>
 
 <?php
 } catch (Exception $e) {
+	echo '<pre>';var_dump($e);echo '</pre>';
 	// 有効なアクセストークンが取得できないならinstallページに移動させるリンクを表示
 	if ($e->getCode() === 408) {
 	?>

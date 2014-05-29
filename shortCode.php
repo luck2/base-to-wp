@@ -33,11 +33,36 @@ class ShortCode {
 			$BaseOAuthWP = new \BaseOAuthWP();
 			$BaseOAuthWP->checkToken();
 
-			$response = $BaseOAuthWP->getItems();
-			if ( $BaseOAuthWP->http_code == 400 )
-				throw new \Exception( '400 Bad Request.', 400 );
+			$items = $BaseOAuthWP->getItems();
 
-			return $BaseOAuthWP->render_list(null,true);
+			$shop_info = get_option('base_to_wp_shop_info');
+
+			ob_start();
+
+			foreach ( $items as $item ) : ?>
+
+				<div class="item part">
+					<div class="itemImg">
+						<a href="<?php esc_attr_e($shop_info['shop_url'].'/items/'.$item->item_id); ?>"><img src="<?php esc_attr_e($item->img1_origin); ?>" alt="<?php esc_attr_e($item->title); ?>" title="<?php esc_attr_e($item->title); ?>" class="image-resize"></a>
+					</div>
+					<a href="<?php esc_attr_e($shop_info['shop_url'].'/items/'.$item->item_id); ?>">
+						<div class="itemTitle">
+							<h2><?php _e($item->title); ?></h2>
+						</div>
+						<ul class="itemDetail">
+							<li class="itemPrice">
+								<?php esc_html_e($item->price); ?>円
+							</li>
+						</ul>
+					</a>
+				</div>
+
+			<?php endforeach; ?>
+			<?php
+			$BaseOAuthWP->render_list();
+			$return = ob_get_contents();ob_end_clean();
+			return $return;
+
 
 		} catch ( \Exception $e ) {
 			return $e->getMessage();

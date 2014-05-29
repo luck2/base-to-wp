@@ -57,7 +57,7 @@ class BaseToWP {
 
 		// Register Short Code.
 		require_once BASE_TO_WP_ABSPATH . '/ShortCode.php';
-		add_shortcode('base', array($ShortCode= new \BaseToWP\ShortCode(), 'base'));
+		add_shortcode('base', array( new \BaseToWP\ShortCode(), 'base' ));
 
 		// Register widget
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ShopWidget.php";
