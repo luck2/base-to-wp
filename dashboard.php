@@ -26,7 +26,7 @@ try {
 
 	$user = $BaseOAuthWP->getUsers();
 	$items = $BaseOAuthWP->getItems();
-	$item = $BaseOAuthWP->getItems($id=26371);
+	$item = $BaseOAuthWP->getItems($id=26371);//FIXME getItem()にしようかな
 
 	?>
 	<h3>BASEショップ情報</h3>
