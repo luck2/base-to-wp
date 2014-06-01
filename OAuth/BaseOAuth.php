@@ -225,54 +225,53 @@ class BaseOAuth {
 	}
 
 	/**
+	 * GET /1/users/me
+	 * ユーザー情報を取得
+	 *
+	 * shop_id - ユーザーを識別するユニークなID。文字列型。
+	 * background - ショップの背景画像
+	 * logo - ショップのロゴ画像
+	 * mail_address - read_users_mailのscopeがある時のみ取得できます。
+	 *
 	 * @return array|mixed
 	 */
 	public function getUsers() {
-
 		$this->url = self::build_url( self::USERS_ME );
-
 		$response = $this->_get( $this->url );
-
-		/**
-		 * shop_id - ユーザーを識別するユニークなID。文字列型。
-		 * background - ショップの背景画像
-		 * logo - ショップのロゴ画像
-		 * mail_address - read_users_mailのscopeがある時のみ取得できます。
-		 */
-		if ( $response )
-			$response = self::json_parse( $response );
-
-		return $response;
+		return self::json_parse( $response );
 	}
 
 	/**
-	 * GET /1/items - 商品情報の一覧を取得
-	 * GET /1/items/detail/:item_id - 商品情報を取得
+	 * GET /1/items
+	 * 商品情報の一覧を取得
+	 *
+	 * order    並び替え項目。list_order か created のいずれか (任意 デフォルト: list_order)
+	 * sort    並び順。asc か desc のいずれか (任意 デフォルト: asc)
+	 * limit    リミット (任意 デフォルト: 20, MAX: 100)
+	 * offset    オフセット (任意 デフォルト: 0)
 	 *
 	 * @param array $params
 	 *
 	 * @internal param null $id
 	 * @return mixed
 	 */
-	public function getItems( $params = array() ) {
-
-		/**
-		 * order    並び替え項目。list_order か created のいずれか (任意 デフォルト: list_order)
-		 * sort    並び順。asc か desc のいずれか (任意 デフォルト: asc)
-		 * limit    リミット (任意 デフォルト: 20, MAX: 100)
-		 * offset    オフセット (任意 デフォルト: 0)
-		 */
-		$this->url = ( is_array( $params ) )
-			? ( ( $params ) ? self::build_url( self::ITEMS, $params ) : self::build_url( self::ITEMS ) )
-			: self::build_url( self::ITEMS_DETAIL . $params );
-
+	public function getItems($params=array()) {
+		$this->url = self::build_url( self::ITEMS, $params );
 		$response = $this->_get( $this->url );
-
-		if ( $response )
-			$response = self::json_parse( $response );
-
-		return $response;
-
+		return self::json_parse( $response );
+	}
+	/**
+	 * GET /1/items/detail/:item_id
+	 * 商品情報を取得
+	 *
+	 * @param $id
+	 *
+	 * @return array|mixed
+	 */
+	public function getItem($id) {
+		$this->url = self::build_url(self::ITEMS_DETAIL.$id);
+		$response = $this->_get( $this->url );
+		return self::json_parse( $response );
 	}
 
 	public function addItem() {
@@ -290,9 +289,7 @@ class BaseOAuth {
 	public function getOrders($params=array()) {
 		$this->url = self::build_url(self::ORDERS, $params);
 		$response = $this->_get( $this->url );
-		if ( $response )
-			$response = self::json_parse( $response );
-		return $response;
+		return self::json_parse( $response );
 	}
 	/**
 	 * GET /1/orders/detail/:unique_key
@@ -304,9 +301,7 @@ class BaseOAuth {
 	public function getOrder($unique_key) {
 		$this->url = self::build_url(self::ORDERS_DETAIL.$unique_key);
 		$response = $this->_get( $this->url );
-		if ( $response )
-			$response = self::json_parse( $response );
-		return $response;
+		return self::json_parse( $response );
 	}
 
 	/**
@@ -446,15 +441,15 @@ class BaseOAuth {
 	public function render_list( $response=null, $return=false ) {
 		//Set
 		is_null( $response ) and $response = $this->response;
+		//Check
+		if (empty($response)) return '';
 		//jsonならobjectにparse　FIXME 判定めんどいだれか
 		if ( is_string( $response ) )
 			$response = self::json_parse( $response );
 		// 配列でないなら配列に
 		!is_array( $response ) and $response = array( $response );
-
 		/**
 		 * @param $arr_obj
-		 *
 		 * @return bool|string
 		 */
 		$render_object_recursive = function ($arr_obj) use (&$render_object_recursive) {

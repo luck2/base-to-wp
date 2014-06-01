@@ -59,7 +59,7 @@ class ShortCode {
 
 			<?php endforeach; ?>
 			<?php
-			$BaseOAuthWP->render_list();
+//			$BaseOAuthWP->render_list();
 			$return = ob_get_contents();ob_end_clean();
 			return $return;
 

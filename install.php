@@ -20,7 +20,7 @@ $install_uri = admin_url('admin.php?page=base_to_wp_install');
 $redirect_uri = $install_uri;
 $redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME DEVELOP
 list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
-$message='';$user=null;
+$message='';$user=null;$authorize_uri=null;
 //TODO DEBUG
 ini_set('display_errors', true);
 error_reporting(E_ALL);
@@ -67,6 +67,12 @@ try {
 		case '4':
 			break;
 		case '5':
+
+			if (isset($_GET['debug'])) {//FIXME DEBUG
+				debug_update_options();
+				break;
+			}
+
 			if ( isset($_GET['code']) ) {
 				//code=xxxxxxxxxxxxxxxxxxxx&state=oauth
 				//FIXME 認可コードからaccess_token,refresh_tokenを取得して保存する
@@ -86,8 +92,6 @@ try {
 				//error=access_denied&error_description=user_reject&state=oauth
 				throw new \Exception('Error: user_reject');
 			}
-
-
 			break;
 	endswitch;
 
@@ -162,18 +166,40 @@ $stage = get_option('base_to_wp_install_stage');
 		</form>
 	<?php elseif ($stage == '3') : ?>
 
-		<?php if (! $e) : ?>
+		<?php if (! isset($e)) : ?>
 		<h3><span style="font-size: 150%">Step 4 :</span> BASE アカウントの認証</h3>
 		<p>もう少し！今すぐあなたのBASEアカウントにアクセスできるようにあなたのブログを承認する必要があります。</p>
 		<p>下のボタンをクリックすると、api.thebase.in へ移動します。あなたがすでにログインしている場合は、あなたのブログを認可するためのオプションが表示されます。「アプリを認証する」ボタンを押して、自動でここへ戻って来ます。</p>
-		<p style="text-align:center">
-			<a href="<?php echo $authorize_uri; ?>" class="button">BASE API おーそりぼたん</a>
+<!--		<p style="text-align:center"><img src="--><?php //echo plugin_dir_url(__FILE__).'/images/wizard_3.png'; ?><!--" alt="アプリを承認する" /></p>-->
+
+			<p style="text-align:center">
+			<a href="<?php echo $authorize_uri; ?>" class="button">アプリを承認する</a>
+			　/　<a href="<?php echo $next_uri . '&step=5&debug=1'; ?>" class="button">#DEBUG SET AUTH KEY</a>
 		</p>
 		<?php endif; ?>
 
 	<?php elseif ($stage == '5') : ?>
 		<h3><span style="font-size: 150%">Step 5 :</span> おめでとう！すべてが完了しました！</h3>
-		<p>あなたのBASEアカウントにアクセスするためにこのブログを承認しました。あなたのBASEショップ<?php esc_html_e("（{$user->shop_name}）"); ?>はワードプレスと連携することができます。</p>
+		<p>あなたのBASEアカウントにアクセスするためにこのアプリを承認しました。あなたのBASEショップ<?php esc_html_e("（{$user->shop_name}）"); ?>はワードプレスと連携することができます。</p>
+		<table style="padding-left: 5px;">
+			<tbody>
+			<tr >
+				<td rowspan="5" width="30%"><img src="<?php echo esc_html($user->logo); ?>" alt="shop logo" style="width: 90%;"/></td>
+			</tr>
+			<tr>
+				<td style="width: 16%;">Shop ID</td><td><?php echo esc_html($user->shop_id); ?></td>
+			</tr>
+			<tr>
+				<td>Shop Name</td><td><?php echo esc_html($user->shop_name); ?></td>
+			</tr>
+			<tr>
+				<td>Shop Name</td><td><?php echo esc_html($user->shop_introduction); ?></td>
+			</tr>
+			<tr>
+				<td>Shop URL</td><td><?php echo esc_html($user->shop_url); ?></td>
+			</tr>
+			</tbody>
+		</table>
 		<p style="text-align:right">
 			<a class="button" href="<?php echo admin_url('admin.php?page=base_to_wp'); ?>">完了</a>
 		</p>

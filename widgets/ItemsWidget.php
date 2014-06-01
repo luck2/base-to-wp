@@ -33,10 +33,13 @@ class BaseToWPItemsWidget extends \WP_Widget {
 			$BaseOAuthWP->checkToken();
 			$items = $BaseOAuthWP->getItems();
 
+			$shop_info = get_option('base_to_wp_shop_info');
+
+
 			foreach ( $items as $item ) :
 				?>
 				<h4><?php _e($item->title, BASE_TO_WP_NAMEDOMAIN); ?></h4>
-				<a href="<?php esc_attr_e("http://sample.com/items/".$item->item_id);/*FIXME url*/ ?>"><img src="<?php esc_attr_e($item->img1_origin); ?>" alt="item photo"/></a>
+				<a href="<?php esc_attr_e($shop_info['shop_url'].'/items/'.$item->item_id); ?>"><img src="<?php esc_attr_e($item->img1_origin); ?>" alt="item photo"/></a>
 				<p><?php echo sprintf( __('Price: %d', BASE_TO_WP_NAMEDOMAIN), $item->price); ?></p>
 				<hr/>
 			<?php

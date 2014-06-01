@@ -26,7 +26,7 @@ try {
 
 	$user = $BaseOAuthWP->getUsers();
 	$items = $BaseOAuthWP->getItems();
-	$item = $BaseOAuthWP->getItems($id=26371);//FIXME getItem()にしようかな
+	$item = $BaseOAuthWP->getItem($id=26371);
 
 	$orders = $BaseOAuthWP->getOrders();
 	$order = $BaseOAuthWP->getOrder($unique_key='BA344A40D231FF5B');
@@ -36,10 +36,9 @@ try {
 	?>
 	<h3>BASEショップ情報</h3>
 	<?php $BaseOAuthWP->render_list($user); ?>
-	<h3>商品情報</h3>
-	<h4>一覧</h4>
+	<h3>商品情報一覧</h3>
 	<?php $BaseOAuthWP->render_list($items); ?>
-	<h4>個別(ID:<?php echo $id;?>)</h4>
+	<h3>商品情報(ID:<?php echo $id;?>)</h3>
 	<?php $BaseOAuthWP->render_list($item); ?>
 
 	<h3>カテゴリー情報の一覧</h3>
