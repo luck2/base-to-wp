@@ -125,25 +125,23 @@ class BaseToWP {
 	 * メニュー画面追加
 	 */
 	public function admin_menus() {
-		// BASE To WP > ダッシュボード
-		add_menu_page( 'BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp', function () {
-			include BASE_TO_WP_ABSPATH . "/dashboard.php";
-		} );
+		// BASE To WP
+		add_menu_page( 'BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp');
 		// BASE To WP > ダッシュボード
 		add_submenu_page( 'base_to_wp', 'BASE To WP > dashboard', 'Dashboard', 'administrator', 'base_to_wp', function () {
-			include BASE_TO_WP_ABSPATH."/dashboard.php";
+			include_once BASE_TO_WP_ABSPATH."/dashboard.php";
 		} );
 		// BASE To WP > 商品管理
 		add_submenu_page( 'base_to_wp', 'BASE To WP > Items', 'Items', 'administrator', 'base_to_wp_items', function () {
-			include BASE_TO_WP_ABSPATH."/items.php";
+			include_once BASE_TO_WP_ABSPATH."/items.php";
 		} );
 		// BASE To WP > 注文管理
 		add_submenu_page( 'base_to_wp', 'BASE To WP > Orders', 'Orders', 'administrator', 'base_to_wp_orders', function () {
-			include BASE_TO_WP_ABSPATH."/orders.php";
+			include_once BASE_TO_WP_ABSPATH."/orders.php";
 		} );
 		// BASE To WP > セッティング
 		add_submenu_page( 'base_to_wp', 'BASE To WP > settings', 'Settings', 'administrator', 'base_to_wp_settings', function () {
-			include BASE_TO_WP_ABSPATH."/settings.php";
+			include_once BASE_TO_WP_ABSPATH."/settings.php";
 		} );
 		// BASE To WP > インストール
 		if (!get_option( 'base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth'])) {

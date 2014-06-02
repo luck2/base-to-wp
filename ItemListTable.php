@@ -21,12 +21,11 @@ class ItemListTable extends \WP_List_Table {
 
 	function __construct(){
 //		global $status, $page;
-//		var_dump($status,$page);
 
 		parent::__construct( array(
-			'singular'  => 'base-item',
-			'plural'    => 'base-items',
-			'ajax'      => false
+			'singular'  => 'item',
+			'plural'    => 'items',
+			'ajax'      => true,
 		) );
 
 	}
@@ -59,8 +58,8 @@ class ItemListTable extends \WP_List_Table {
 
 		//Build row actions
 		$actions = array(
-			'edit'      => sprintf('<a href="?page=%s&action=%s&movie=%s">Edit</a>',$_REQUEST['page'],'edit',$item['item_id']),
-			'delete'    => sprintf('<a href="?page=%s&action=%s&movie=%s">Delete</a>',$_REQUEST['page'],'delete',$item['item_id']),
+			'edit'      => sprintf('<a href="?page=%s&action=%s&item=%s">Edit</a>',$_REQUEST['page'],'edit',$item['item_id']),
+			'delete'    => sprintf('<a href="?page=%s&action=%s&item=%s">Delete</a>',$_REQUEST['page'],'delete',$item['item_id']),
 		);
 
 		//Return the title contents

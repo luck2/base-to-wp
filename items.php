@@ -11,45 +11,57 @@ ini_set('display_errors', true);
 error_reporting(E_ALL);
 debug_base();
 
-$reset_account_uri = admin_url('admin.php?page=base_to_wp_install&reset_account=1&step=1');
+//Init
+empty($_GET['action']) and $_GET['action']=null;
+empty($_GET['item']) and $_GET['item']=null;
+$item=null;
 
 try {
+
 	$BaseOAuthWP = new BaseOAuthWP();
 	$BaseOAuthWP->checkToken();
 
-	$items_obj = $BaseOAuthWP->getItems();
-	$response = json_decode($BaseOAuthWP->response,true);
-	$items = $response['items'];
+	if ($_GET['action']==='edit' && $_GET['item'] > 0) {
+		$item = $BaseOAuthWP->getItem( $_GET['item'] );
 
-//	$item = $BaseOAuthWP->getItem($id=26371);
+	} elseif($_GET['action']==='new') {
+		echo 'newwwwwwwwwwwwwwwwww';
+	} else {
+		$items_obj = $BaseOAuthWP->getItems();
+		$response = json_decode($BaseOAuthWP->response,true);
+		$items = $response['items'];
 
-	require_once BASE_TO_WP_ABSPATH.'/ItemListTable.php';
-	$ItemListTable = new \BaseToWP\ItemListTable();
-	$ItemListTable->data = $items;
-	$ItemListTable->prepare_items();
+		require_once BASE_TO_WP_ABSPATH.'/ItemListTable.php';
+		$ItemListTable = new \BaseToWP\ItemListTable();
+		$ItemListTable->data = $items;
+		$ItemListTable->prepare_items();
+	}
 
 
 } catch (Exception $e) {
 	var_dump($e->getMessage());
 }
-
-
 ?>
 <div class="wrap">
-	<h2><?php _e('BASE To WordPress Items', BASE_TO_WP_NAMEDOMAIN); ?></h2>
+<?php if($_GET['action']==='edit' && $_GET['item'] > 0): ?>
+	<h2><?php _e('BASE To WordPress 商品の編集', BASE_TO_WP_NAMEDOMAIN); ?></h2>
+	<?php $BaseOAuthWP->render_list($item); ?>
 
 
-	<h3>商品情報一覧</h3>
+<?php elseif($_GET['action']==='new'): ?>
+	<h2><?php _e('BASE To WordPress 商品の新規追加', BASE_TO_WP_NAMEDOMAIN); ?></h2>
+	にゅううううううううううううううううううう
 
-	<form id="movies-filter" method="get">
+<?php else: ?>
+	<h2><?php _e('BASE To WordPress 商品管理', BASE_TO_WP_NAMEDOMAIN); ?><a href="#" class="add-new-h2">新規追加</a></h2>
+	<?php //$BaseOAuthWP->render_list($items_obj); ?>
+
+	<form id="base-items-filter" method="get">
+		<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
 		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
-		<?php $ItemListTable->display() ?>
+		<?php $ItemListTable->display(); ?>
 	</form>
 
-<!--	--><?php //$BaseOAuthWP->render_list($items_obj); ?>
-<!--	<h3>商品情報(ID:--><?php //echo $id;?><!--)</h3>-->
-<!--	--><?php //$BaseOAuthWP->render_list($item); ?>
 
-
-	<p><a href="<?php echo $reset_account_uri ;?>">[再セットアップ]</a></p>
+<?php endif; ?>
 </div>
