@@ -1,7 +1,7 @@
 <?php
 /**
- * Created by PhpStorm => 
- * User: K => Sasaki
+ * Created by PhpStorm.
+ * User: K.Sasaki
  * Date: 2014/05/25
  * Time: 0:46
  */
@@ -15,6 +15,9 @@ debug_base();
 empty($_GET['action']) and $_GET['action']=null;
 empty($_GET['item']) and $_GET['item']=null;
 $item=null;
+
+$items_uri = admin_url('admin.php?page=base_to_wp_items');
+
 
 try {
 
@@ -53,7 +56,7 @@ try {
 	にゅううううううううううううううううううう
 
 <?php else: ?>
-	<h2><?php _e('BASE To WordPress 商品管理', BASE_TO_WP_NAMEDOMAIN); ?><a href="#" class="add-new-h2">新規追加</a></h2>
+	<h2><?php _e('BASE To WordPress 商品管理', BASE_TO_WP_NAMEDOMAIN); ?><a href="<?php echo $items_uri.'&action=new'?>" class="add-new-h2">新規追加</a></h2>
 	<?php //$BaseOAuthWP->render_list($items_obj); ?>
 
 	<form id="base-items-filter" method="get">

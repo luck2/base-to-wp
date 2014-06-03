@@ -16,7 +16,7 @@ if(!class_exists('WP_List_Table')){
  * Class ItemListTable
  * @package BaseToWP
  */
-class ItemListTable extends \WP_List_Table {
+class OrderListTable extends \WP_List_Table {
 
 	public $data = array();
 
@@ -25,8 +25,8 @@ class ItemListTable extends \WP_List_Table {
 	public function __construct(){
 //		global $status, $page;
 		parent::__construct( array(
-			'singular'  => 'item',
-			'plural'    => 'items',
+			'singular'  => 'order',
+			'plural'    => 'orders',
 			'ajax'      => true,
 		) );
 	}
@@ -39,10 +39,11 @@ class ItemListTable extends \WP_List_Table {
 	 */
 	function column_default($item, $column_name){
 		switch($column_name){
-			case 'detail':
-			case 'price':
-			case 'stock':
-			case 'visible':
+			case 'unique_key':
+			case 'ordered':
+			case 'payment':
+			case 'total':
+			case 'terminated':
 				return $item[$column_name];
 			default:
 				return print_r($item,true);
@@ -53,18 +54,26 @@ class ItemListTable extends \WP_List_Table {
 	 *
 	 * @return string
 	 */
-	function column_title($item){
+	function column_unique_key($item){
 		//Build row actions
 		$actions = array(
-			'edit'      => sprintf('<a href="?page=%s&action=%s&item=%s">Edit</a>',$_GET['page'],'edit',$item['item_id']),
-			'delete'    => sprintf('<a href="?page=%s&action=%s&item=%s">Delete</a>',$_GET['page'],'delete',$item['item_id']),
+			'edit'      => sprintf('<a href="?page=%s&action=%s&unique_key=%s">Detail</a>',$_GET['page'],'detail',$item['unique_key']),
+			'delete'    => sprintf('<a href="?page=%s&action=%s&unique_key=%s">Delete</a>',$_GET['page'],'delete',$item['unique_key']),
 		);
 		//Return the title contents
 		return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-			/*$1%s*/ $item['title'],
-			/*$2%s*/ $item['item_id'],
+			/*$1%s*/ $item['unique_key'],
+			/*$2%s*/ $item['unique_key'],
 			/*$3%s*/ $this->row_actions($actions)
 		);
+	}
+	/**
+	 * @param $item
+	 *
+	 * @return string
+	 */
+	function column_name($item){
+		return $item['last_name'] . ' ' .  $item['first_name'];
 	}
 	/**
 	 * @param $item
@@ -75,7 +84,7 @@ class ItemListTable extends \WP_List_Table {
 		return sprintf(
 			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
 			/*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-			/*$2%s*/ $item['item_id']                //The value of the checkbox should be the record's id
+			/*$2%s*/ $item['unique_key']                //The value of the checkbox should be the record's id
 		);
 	}
 
@@ -85,11 +94,12 @@ class ItemListTable extends \WP_List_Table {
 	function get_columns(){
 		$columns = array(
 			'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
-			'title'     => 'Title',
-			'detail'    => 'Detail',
-			'price'  => 'Price',
-			'stock'  => 'Stock',
-			'visible'  => 'Visible',
+			'unique_key'     => 'Unique key',
+			'ordered'    => 'Ordered',
+			'payment'  => 'Payment',
+			'name'  => 'Name',
+			'total'  => 'Total',
+			'terminated'  => 'Terminated',
 		);
 		return $columns;
 	}
@@ -98,11 +108,12 @@ class ItemListTable extends \WP_List_Table {
 	 */
 	function get_sortable_columns() {
 		$sortable_columns = array(
-			'title'     => array('title',false),     //true means it's already sorted
-			'detail'    => array('detail',false),
-			'price'  => array('price',false),
-			'stock'  => array('stock',false),
-			'visible'  => array('visible',false),
+			'unique_key'     => array('unique_key',false),     //true means it's already sorted
+			'ordered'    => array('ordered',false),
+			'payment'  => array('payment',false),
+			'name'  => array('name',false),
+			'total'  => array('total',false),
+			'terminated'  => array('terminated',false),
 		);
 		return $sortable_columns;
 	}
@@ -143,7 +154,7 @@ class ItemListTable extends \WP_List_Table {
 		$data = $this->data;
 
 		usort($data, function ($a,$b) {
-			$orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'item_id';
+			$orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'ordered';
 			$order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'desc';
 			$result = strcmp($a[$orderby], $b[$orderby]);
 			return ($order==='asc') ? $result : -$result;

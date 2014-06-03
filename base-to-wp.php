@@ -135,6 +135,10 @@ class BaseToWP {
 		add_submenu_page( 'base_to_wp', 'BASE To WP > Items', 'Items', 'administrator', 'base_to_wp_items', function () {
 			include_once BASE_TO_WP_ABSPATH."/items.php";
 		} );
+		// BASE To WP > デザイン編集
+		add_submenu_page( 'base_to_wp', 'BASE To WP > Design', 'Design', 'administrator', 'base_to_wp_design', function () {
+			include_once BASE_TO_WP_ABSPATH."/design.php";
+		} );
 		// BASE To WP > 注文管理
 		add_submenu_page( 'base_to_wp', 'BASE To WP > Orders', 'Orders', 'administrator', 'base_to_wp_orders', function () {
 			include_once BASE_TO_WP_ABSPATH."/orders.php";
