@@ -42,29 +42,42 @@ try {
 
 
 } catch (Exception $e) {
-	var_dump($e->getMessage());
+//	var_dump($e->getMessage());
 }
 ?>
 <div class="wrap">
 <?php if($_GET['action']==='edit' && $_GET['item'] > 0): ?>
 	<h2><?php _e('BASE To WordPress 商品の編集', BASE_TO_WP_NAMEDOMAIN); ?></h2>
-	<?php $BaseOAuthWP->render_list($item); ?>
-
+	<?php
+	if (empty($e)) {
+		$BaseOAuthWP->render_list($item);
+	} else {
+		var_dump($e->getMessage());
+	}
+	?>
 
 <?php elseif($_GET['action']==='new'): ?>
 	<h2><?php _e('BASE To WordPress 商品の新規追加', BASE_TO_WP_NAMEDOMAIN); ?></h2>
-	にゅううううううううううううううううううう
+	<?php
+	if (empty($e)) {
+		echo '<p>にゅうううううううううううううううううううううううううううう</p>';
+	} else {
+		var_dump($e->getMessage());
+	}
+	?>
 
 <?php else: ?>
 	<h2><?php _e('BASE To WordPress 商品管理', BASE_TO_WP_NAMEDOMAIN); ?><a href="<?php echo $items_uri.'&action=new'?>" class="add-new-h2">新規追加</a></h2>
+	<?php if (empty($e)):?>
 	<?php //$BaseOAuthWP->render_list($items_obj); ?>
-
 	<form id="base-items-filter" method="get">
 		<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
 		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
 		<?php $ItemListTable->display(); ?>
 	</form>
-
+	<?php else: ?>
+		<?php var_dump($e->getMessage()); ?>
+	<?php endif; ?>
 
 <?php endif; ?>
 </div>
