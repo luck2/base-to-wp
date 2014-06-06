@@ -38,22 +38,33 @@ try {
 		$OrderListTable->prepare_items();
 	}
 } catch (Exception $e) {
-	var_dump($e->getMessage());
-
+	$e->getMessage();
 }
 ?>
 <div class="wrap">
 	<?php if ($_GET['action']==='detail' && $_GET['unique_key'] !== null ): ?>
 		<h2><?php _e('BASE To WordPress 注文詳細', BASE_TO_WP_NAMEDOMAIN); ?></h2>
-		<?php $BaseOAuthWP->render_list($order); ?>
+		<?php
+		if (empty($e)) {
+			$BaseOAuthWP->render_list($order);
+		} else {
+			var_dump($e->getMessage());
+		}
+		?>
 
 	<?php else: ?>
 		<h2><?php _e('BASE To WordPress 注文管理', BASE_TO_WP_NAMEDOMAIN); ?></h2>
+		<?php if (empty($e)) { ?>
 		<?php //$BaseOAuthWP->render_list($orders_obj); ?>
 		<form id="base-items-filter" method="get">
 			<?php $OrderListTable->search_box('注文を検索','base-order-search-input'); ?>
 			<input type="hidden" name="page" value="<?php echo $_GET['page'] ?>" />
 			<?php $OrderListTable->display(); ?>
 		</form>
+		<?php
+		} else {
+			var_dump($e->getMessage());
+		}
+		?>
 	<?php endif; ?>
 </div>

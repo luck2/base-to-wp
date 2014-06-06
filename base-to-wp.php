@@ -128,32 +128,27 @@ class BaseToWP {
 		// BASE To WP
 		add_menu_page( 'BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp');
 		// BASE To WP > ダッシュボード
-		global $base_to_wp_page_dashboard;
 		$base_to_wp_page_dashboard = add_submenu_page( 'base_to_wp', 'BASE To WP > dashboard', 'Dashboard', 'administrator', 'base_to_wp', function () {
 			include_once BASE_TO_WP_ABSPATH."/dashboard.php";
 		} );
 		// BASE To WP > 商品管理
-		global $base_to_wp_page_items;
 		$base_to_wp_page_items = add_submenu_page( 'base_to_wp', 'BASE To WP > Items', 'Items', 'administrator', 'base_to_wp_items', function () {
 			include_once BASE_TO_WP_ABSPATH."/items.php";
 		} );
 		// BASE To WP > デザイン編集
-		global $base_to_wp_page_design;
 		$base_to_wp_page_design = add_submenu_page( 'base_to_wp', 'BASE To WP > Design', 'Design', 'administrator', 'base_to_wp_design', function () {
 			include_once BASE_TO_WP_ABSPATH."/design.php";
 		} );
 		// BASE To WP > 注文管理
-		global $base_to_wp_page_order;
 		$base_to_wp_page_order = add_submenu_page( 'base_to_wp', 'BASE To WP > Orders', 'Orders', 'administrator', 'base_to_wp_orders', function () {
 			include_once BASE_TO_WP_ABSPATH."/orders.php";
 		} );
 		// BASE To WP > セッティング
-		global $base_to_wp_page_settings;
 		$base_to_wp_page_settings = add_submenu_page( 'base_to_wp', 'BASE To WP > settings', 'Settings', 'administrator', 'base_to_wp_settings', function () {
 			include_once BASE_TO_WP_ABSPATH."/settings.php";
 		} );
 		// BASE To WP > インストール
-		global $base_to_wp_page_install;
+		$base_to_wp_page_install = '';
 		if (!get_option( 'base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth'])) {
 			$base_to_wp_page_install = add_submenu_page( 'base_to_wp', 'BASE To WP > install', 'Install', 'administrator', 'base_to_wp_install', function () {
 				include BASE_TO_WP_ABSPATH . "/install.php";
@@ -173,9 +168,9 @@ class BaseToWP {
 		 *
 		 * @return string
 		 */
-		function my_plugin_help($contextual_help, $screen_id, $screen) {
-			global $base_to_wp_page_dashboard, $base_to_wp_page_items,$base_to_wp_page_design,$base_to_wp_page_order,$base_to_wp_page_settings,$base_to_wp_page_install;
-			var_dump($contextual_help,$screen_id, $screen);
+		$my_plugin_help = function ($contextual_help, $screen_id, $screen) use ($base_to_wp_page_dashboard, $base_to_wp_page_items,$base_to_wp_page_design,$base_to_wp_page_order,$base_to_wp_page_settings,$base_to_wp_page_install) {
+
+//			var_dump($contextual_help,$screen_id, $screen);
 
 			switch ($screen_id) {
 				case $base_to_wp_page_dashboard :
@@ -198,8 +193,9 @@ class BaseToWP {
 					break;
 			}
 			return $contextual_help;
-		}
-		add_filter('contextual_help', 'my_plugin_help', 10, 3);//help
+		};
+
+		add_filter('contextual_help', $my_plugin_help, 10, 3);//help
 
 		// 設定メニュー下にサブメニューを追加
 //		add_options_page('Test Options', 'Test Options', 'administrator', 'test-options', function(){ echo "<h2>Test Options</h2>"; });
