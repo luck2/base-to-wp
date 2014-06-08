@@ -42,6 +42,7 @@ try {
 } catch (Exception $e) {
 //	var_dump($e->getMessage());
 }
+
 ?>
 <div class="wrap">
 <?php if($_GET['action']==='edit' && $_GET['item'] > 0): ?>
@@ -111,8 +112,8 @@ try {
 									<div id="misc-publishing-actions">
 
 										<div class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
-											<label class="approved"><input type="radio" checked="checked" name="visible" value="1">表示</label>&nbsp;|&nbsp;
-											<label class="spam"><input type="radio" name="visible" value="0">非表示</label>
+											<label class="approved"><input type="radio" checked="checked" name="visible" value="1">公開</label>&nbsp;|&nbsp;
+											<label class="spam"><input type="radio" name="visible" value="0">非公開</label>
 										</div>
 
 										<div class="misc-pub-section misc-pub-comment-author-ip">
