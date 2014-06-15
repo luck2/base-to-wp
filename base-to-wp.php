@@ -65,14 +65,23 @@ class BaseToWP {
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ItemsWidget.php";
 		add_action('widgets_init', function(){ register_widget('BaseToWPItemsWidget'); });
 
-		//#TODO jqueryない場合登録
+		// jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
 
-		//管理メニュー TODO 増えてきたのでクラスファイル化する
+		//管理メニュー TODO ページクラスに分ける
 		require_once BASE_TO_WP_ABSPATH . '/AdminMenus.php';
 		$AdminMenus = new \BaseToWP\AdminMenus();
 		add_action('init', array($AdminMenus, 'install_check'));// Install check
 		add_action('admin_menu', array($AdminMenus, 'admin_menus'));// 管理メニューに追加するフック
+
+
+
+		require_once BASE_TO_WP_ABSPATH . '/items.php';
+		$items_page = new ItemsPage('base_to_wp',__('BASE To WP > Items',BaseToWP::NAME_DOMAIN),__('Items',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_items');
+
+		require_once BASE_TO_WP_ABSPATH . '/item-new.php';
+		$item_new_page = new ItemNewPage('base_to_wp',__('BASE To WP > New Item',BaseToWP::NAME_DOMAIN),__('New Item',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_new_item');
+
 
 		// TODO DEBUG
 		add_action('wp_head', function(){

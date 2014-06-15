@@ -56,7 +56,7 @@ class ItemListTable extends \WP_List_Table {
 	function column_title($item){
 		//Build row actions
 		$actions = array(
-			'edit'      => sprintf('<a href="?page=%s&action=%s&item=%s">Edit</a>',$_GET['page'],'edit',$item['item_id']),
+			'edit'      => sprintf('<a href="%s&item=%s">Edit</a>', admin_url('admin.php?page=base_to_wp_new_item'), $item['item_id']),
 			'delete'    => sprintf('<a href="?page=%s&action=%s&item=%s">Delete</a>',$_GET['page'],'delete',$item['item_id']),
 		);
 		//Return the title contents

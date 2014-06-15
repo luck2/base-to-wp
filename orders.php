@@ -7,9 +7,9 @@
  */
 
 //TODO DEBUG
-ini_set('display_errors', true);
-error_reporting(E_ALL);
-debug_base();
+//ini_set('display_errors', true);
+//error_reporting(E_ALL);
+//debug_base();
 
 //Init
 empty($_GET['action']) and $_GET['action']=null;

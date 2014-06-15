@@ -2,200 +2,298 @@
 /**
  * Created by PhpStorm.
  * User: K.Sasaki
- * Date: 2014/05/25
- * Time: 0:46
+ * Date: 2014/06/14
+ * Time: 21:57
  */
 
-//TODO DEBUG
-ini_set('display_errors', true);
-error_reporting(E_ALL);
-debug_base();
 
-//Init
-empty($_GET['action']) and $_GET['action']=null;
-empty($_GET['item']) and $_GET['item']=null;
-$item=null;
+/**
+ * Class AdminPage
+ */
+class ItemsPage
+{
+	public $hook;
+	public $title;
+	public $menu;
+	public $permissions;
+	public $slug;
+	public $screen_id;
 
-$items_uri = admin_url('admin.php?page=base_to_wp_items');
+	/**
+	 * @param $hook
+	 * @param $title
+	 * @param $menu
+	 * @param $permissions
+	 * @param $slug
+	 */
+	public function __construct($hook, $title, $menu, $permissions, $slug){
+		$this->hook = $hook;
+		$this->title = $title;
+		$this->menu = $menu;
+		$this->permissions = $permissions;
+		$this->slug = $slug;
 
-
-try {
-
-	$BaseOAuthWP = new BaseOAuthWP();
-	$BaseOAuthWP->checkToken();
-
-	if ($_GET['action']==='edit' && $_GET['item'] > 0) {
-		$item = $BaseOAuthWP->getItem( $_GET['item'] );
-
-	} elseif($_GET['action']==='new') {
-		echo 'newwwwwwwwwwwwwwwwww';
-	} else {
-		$items_obj = $BaseOAuthWP->getItems();
-		$response = json_decode($BaseOAuthWP->response,true);
-		$items = $response['items'];
-
-		require_once BASE_TO_WP_ABSPATH.'/ItemListTable.php';
-		$ItemListTable = new \BaseToWP\ItemListTable();
-		$ItemListTable->data = $items;
-		$ItemListTable->prepare_items();
+		add_action('admin_menu', array($this,'add_page'));
 	}
-} catch (Exception $e) {
-//	var_dump($e->getMessage());
+
+	/**
+	 * Add page
+	 */
+	public function add_page(){
+		// Add the page
+		$this->screen_id = add_submenu_page($this->hook,$this->title, $this->menu, $this->permissions,$this->slug,  array($this,'render_page'),10);
+
+		// Add callbacks for this screen only
+		add_action('load-'.$this->screen_id,  array($this,'page_actions'),9);
+
+		/* Enqueue WordPress' script for handling the metaboxes */
+		add_action('admin_print_scripts-'.$this->screen_id, function(){wp_enqueue_script( 'postbox' );});
+		add_action('admin_footer-'.$this->screen_id,array($this,'footer_scripts'));
+		//Add some metaboxes to the page
+//		add_action('add_meta_boxes_'.$this->screen_id, array($this, 'metaboxes'));
+
+	}
+
+	/*
+	 * Actions to be taken prior to page loading. This is after headers have been set.
+	 * call on load-$hook
+	 * This calls the add_meta_boxes hooks, adds screen options and enqueue the postbox.js script.
+	 */
+	public function page_actions(){
+		//Do add_metaboxes_{hook} , add_meta_boxes
+		do_action('add_meta_boxes_'.$this->screen_id, null);
+		do_action('add_meta_boxes', $this->screen_id, null);
+
+		$screen = get_current_screen();
+		$screen->add_help_tab( array(
+			'id'	=> 'over_view',
+			'title'	=> __('Overview'),
+			'content'	=> '<p>' . __( '概要概要概要概要概要概要概要概要概要概要概要概要' ) . '</p>',
+		) );
+		$screen->add_help_tab( array(
+			'id'	=> 'my_help_tab',
+			'title'	=> __('My help tab'),
+			'content'	=> '<p>' . __( 'Descriptive content that will show in My Help Tab-body goes here.' ) . '</p>',
+		) );
+		$screen->set_help_sidebar(
+			__('<p><a href="#">ヘルプサイドバー</a></p><p><a href="#">ヘルプサイドバー2</a></p>')
+		);
+//		$screen->add_option('layout_columns', array('max' => 2, 'default' => 2));
+		$screen->add_option('per_page', array(
+			'label' => 'items',
+			'default' => 10,
+			'option' => 'item_per_page'
+		));
+//		var_dump($screen);
+
+		#FIXME 保存側
+		$set_option = function ($status, $option, $value) {
+			if ( 'item_per_page' == $option ) return $value;
+			return $status;
+		};
+		add_filter('set-screen-option', $set_option, 10, 3);
+
+
+	}
+
+	/**
+	 * Prints the jQuery script to initiliase the metaboxes
+	 * Called on admin_footer-*
+	 */
+	public function footer_scripts(){
+		?>
+		<script>jQuery(function(){ postboxes.add_postbox_toggles(pagenow); });</script>
+		<?php
+	}
+
+	/**
+	 *
+	 */
+	public function metaboxes() {
+		$screen = get_current_screen();//WP_Screen
+		//Normal
+		add_meta_box('example1','Example 1',array($this,'render_metabox'),$screen,'normal','high');
+		//Advanced
+		add_meta_box('example2','Example 2',array($this,'render_metabox'));
+		add_meta_box('example3','Example 3',array($this,'render_metabox'));
+		//Side
+		add_meta_box('submitdiv',__('Publish',BaseToWP::NAME_DOMAIN),array($this,'render_submit_box'),$screen,'side','high');
+	}
+
+	/**
+	 * Renders the page
+	*/
+	public function render_page(){
+
+		//TODO DEBUG
+		ini_set('display_errors', true);
+		error_reporting(E_ALL);
+		debug_base();
+
+
+		$items_uri = admin_url('admin.php?page=base_to_wp_items');
+		$items_new_uri = admin_url('admin.php?page=base_to_wp_new_item');
+
+		try {
+
+			$BaseOAuthWP = new BaseOAuthWP();
+			$BaseOAuthWP->checkToken();
+
+			$items_obj = $BaseOAuthWP->getItems();
+			$response = json_decode($BaseOAuthWP->response,true);
+			$items = $response['items'];
+
+			require_once BASE_TO_WP_ABSPATH.'/ItemListTable.php';
+			$ItemListTable = new \BaseToWP\ItemListTable();
+			$ItemListTable->data = $items;
+			$ItemListTable->prepare_items();
+
+			?>
+			<div class="wrap">
+				<h2> <?php echo esc_html($this->title);?> <a href="<?php echo $items_new_uri; ?>" class="add-new-h2">新規追加</a> </h2>
+					<?php //$BaseOAuthWP->render_list($items_obj); ?>
+					<form id="base-items-filter" method="get">
+						<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
+						<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
+						<?php $ItemListTable->display(); ?>
+					</form>
+			</div>
+			<?php
+		} catch (Exception $e) {
+			?>
+			<div class="wrap">
+				<h2> <?php echo esc_html($this->title);?> <a href="<?php echo $items_new_uri; ?>" class="add-new-h2">新規追加</a> </h2>
+				<?php var_dump($e->getMessage()); ?>
+			</div>
+			<?php
+		}
+		?>
+
+	<?php
+	}
+
+	private function render_contents() {
+		//Init
+		empty( $_GET['item'] ) and $_GET['item'] = null;
+		$item = null;
+
+		$items_uri     = admin_url( 'admin.php?page=base_to_wp_items' );
+		$items_new_uri = admin_url( 'admin.php?page=base_to_wp_new_item' );
+
+		try {
+			if ( $_GET['item'] > 0 ) {
+				//Edit
+				$BaseOAuthWP = new BaseOAuthWP();
+				$BaseOAuthWP->checkToken();
+
+				$item = $BaseOAuthWP->getItem( $_GET['item'] );
+			} else {
+				//New
+				$item             = new stdClass();
+				$item->title      = '';
+				$item->price      = '';
+				$item->detail     = '';
+				$item->visible    = '';
+				$item->stock      = '';
+				$item->list_order = '';
+			}
+			?>
+			<div id="titlediv">
+				<div id="titlewrap">
+					<label class="screen-reader-text" id="title-prompt-text" for="title">ここにタイトルを入力</label>
+					<input type="text" name="post_title" size="30" value="<?php esc_attr_e( $item->title ) ?>" id="title"
+					       autocomplete="off">
+				</div>
+				<div class="inside">
+					<div id="edit-slug-box" class="hide-if-no-js">
+						<strong>パーマリンク:</strong>
+						<span id="sample-permalink" tabindex="-1">http://しょうひんしょうさいurl</span>
+						<span id="view-post-btn"><a href="http://しょうひんしょうさいurl" class="button button-small">Itemを表示</a></span>
+						<span id="view-post-btn2"><a href="http://baseしょうひんしょうさいurl" class="button button-small">BaseShopのItemを表示</a></span>
+					</div>
+				</div>
+				<input type="hidden" id="samplepermalinknonce" name="samplepermalinknonce" value="b9dbdfa0cb"></div>
+
+			<div id="namediv" class="stuffbox">
+				<h3><label for="name">商品編集</label></h3>
+
+				<div class="inside">
+					<table class="form-table editcomment">
+						<tbody>
+						<tr>
+							<td class="first">価格（税込）</td>
+							<td><input type="text" name="price" size="30" value="<?php esc_attr_e( $item->price ) ?>" id="price"></td>
+						</tr>
+						<tr>
+							<td class="first">商品説明</td>
+							<td><input type="text" name="detail" size="30" value="<?php esc_attr_e( $item->detail ) ?>" id="detail"></td>
+						</tr>
+						<tr>
+							<td class="first">在庫数</td>
+							<td><input type="text" name="stock" size="30" value="<?php esc_attr_e( $item->stock ) ?>" id="stock"></td>
+						</tr>
+						<tr>
+							<td class="first">商品画像</td>
+							<td><input type="text" name="gagaga" size="30" value="<?php esc_attr_e( $item->title ) ?>" id="gagaga"></td>
+						</tr>
+						</tbody>
+					</table>
+					<br>
+				</div>
+			</div>
+		<?php
+		} catch ( Exception $e ) {
+			?>
+			<div><?php var_dump($e->getMessage()); ?>:</div>
+		<?php
+		}
+	}
+
+	public function render_submit_box() {
+		?>
+		<div class="submitbox" id="submitcomment">
+			<div id="minor-publishing">
+				<div id="minor-publishing-actions">
+					<div id="preview-action">
+						<a class="preview button" href="http://www.luck2.localhost/company#comment-177" target="_blank">コメントを表示</a>
+					</div>
+					<div class="clear"></div>
+				</div>
+				<div id="misc-publishing-actions">
+					<div class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
+						<label class="approved"><input type="radio" checked="checked" name="visible" value="1">公開</label>&nbsp;|&nbsp;
+						<label class="spam"><input type="radio" name="visible" value="0">非公開</label>
+					</div>
+					<div class="misc-pub-section misc-pub-comment-author-ip">
+						<strong>並び順</strong><br>
+						<input type="text" name="order_list" size="3" />
+					</div>
+					<div class="misc-pub-section misc-pub-comment-author-ip">
+						<label><input type="checkbox" name="display_above" />一番上に表示する</label>
+					</div>
+				</div> <!-- misc actions -->
+				<div class="clear"></div>
+			</div>
+			<div id="major-publishing-actions">
+				<div id="delete-action">
+					<a class="submitdelete deletion" href="#">ゴミ箱へ移動</a>
+				</div>
+				<div id="publishing-action">
+					<input type="submit" name="save" id="save" class="button button-primary" value="更新"></div>
+				<div class="clear"></div>
+			</div>
+
+		</div>
+	<?php
+	}
+
+	public function render_metabox() {
+		?>
+		<p> An example of a metabox <p>
+	<?php
+	}
+
+
+
 }
 
-?>
-<div class="wrap">
-<?php if($_GET['action']==='edit' && $_GET['item'] > 0): ?>
-	<h2><?php _e('BASE To WordPress 商品の編集', BASE_TO_WP_NAMEDOMAIN); ?></h2>
-	<?php
-	if (empty($e)) {
-		$BaseOAuthWP->render_list($item);
-	?>
-		<div id="poststuff">
-
-			<div id="post-body" class="metabox-holder columns-2">
-				<div id="post-body-content" class="edit-form-section">
-					<div id="namediv" class="stuffbox">
-						<h3><label for="name">商品編集</label></h3>
-						<div class="inside">
-							<table class="form-table editcomment">
-								<tbody>
-								<tr>
-									<td class="first">商品名</td>
-									<td><input type="text" name="title" size="30" value="<?php esc_attr_e($item->title) ?>" id="title"></td>
-								</tr>
-								<tr>
-									<td class="first">価格（税込）</td>
-									<td><input type="text" name="price" size="30" value="<?php esc_attr_e($item->price) ?>" id="price"></td>
-								</tr>
-								<tr>
-									<td class="first">商品説明</td>
-									<td><input type="text" name="detail" size="30" value="<?php esc_attr_e($item->detail) ?>" id="detail"></td>
-								</tr>
-								<tr>
-									<td class="first">在庫数</td>
-									<td><input type="text" name="stock" size="30" value="<?php esc_attr_e($item->stock) ?>" id="stock"></td>
-								</tr>
-								<tr>
-									<td class="first">商品画像</td>
-									<td><input type="text" name="gagaga" size="30" value="<?php esc_attr_e($item->title) ?>" id="gagaga"></td>
-								</tr>
-								<tr>
-									<td class="first">公開状態</td>
-									<td><input type="text" name="visible" size="30" value="<?php esc_attr_e($item->visible) ?>" id="visible"></td>
-								</tr>
-								<tr>
-									<td class="first">表示順</td>
-									<td><input type="text" name="list_order" size="30" value="<?php esc_attr_e($item->list_order) ?>" id="list_order"></td>
-								</tr>
-								</tbody>
-							</table>
-							<br>
-						</div>
-					</div>
-				</div><!-- /post-body-content -->
-
-				<div id="postbox-container-1" class="postbox-container">
-					<div id="submitdiv" class="stuffbox">
-						<h3><span class="hndle">ステータス</span></h3>
-						<div class="inside">
-							<div class="submitbox" id="submitcomment">
-								<div id="minor-publishing">
-
-									<div id="minor-publishing-actions">
-<!--										<div id="preview-action">-->
-<!--											<a class="preview button" href="http://www.luck2.localhost/company#comment-177" target="_blank">コメントを表示</a>-->
-<!--										</div>-->
-<!--										<div class="clear"></div>-->
-									</div>
-
-									<div id="misc-publishing-actions">
-
-										<div class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
-											<label class="approved"><input type="radio" checked="checked" name="visible" value="1">公開</label>&nbsp;|&nbsp;
-											<label class="spam"><input type="radio" name="visible" value="0">非公開</label>
-										</div>
-
-										<div class="misc-pub-section misc-pub-comment-author-ip">
-											<strong>並び順</strong><br>
-											<input type="text" name="order_list" size="3" />
-										</div>
-										<div class="misc-pub-section misc-pub-comment-author-ip">
-											<input type="checkbox" name="display_above" />一番上に表示する
-										</div>
-
-									</div> <!-- misc actions -->
-									<div class="clear"></div>
-								</div>
-
-								<div id="major-publishing-actions">
-									<div id="delete-action">
-										<a class="submitdelete deletion" href="#">ゴミ箱へ移動</a>
-									</div>
-									<div id="publishing-action">
-										<input type="submit" name="save" id="save" class="button button-primary" value="更新"></div>
-									<div class="clear"></div>
-								</div>
-
-							</div>
-						</div>
-					</div><!-- /submitdiv -->
-				</div>
-
-
-
-
-
-
-				<div id="postbox-container-2" class="postbox-container">
-					<div id="normal-sortables" class="meta-box-sortables ui-sortable"><div id="akismet-status" class="postbox ">
-							<div class="handlediv" title="クリックで切替"><br></div><h3 class="hndle"><span>コメント履歴</span></h3>
-							<div class="inside">
-							</div>
-						</div>
-					</div></div>
-
-
-
-			</div><!-- /post-body -->
-		</div>
-
-
-
-
-
-
-
-
-
-	<?php
-	} else {
-		var_dump($e->getMessage());
-	}
-	?>
-
-<?php elseif($_GET['action']==='new'): ?>
-	<h2><?php _e('BASE To WordPress 商品の新規追加', BASE_TO_WP_NAMEDOMAIN); ?></h2>
-	<?php
-	if (empty($e)) {
-		echo '<p>にゅうううううううううううううううううううううううううううう</p>';
-	} else {
-		var_dump($e->getMessage());
-	}
-	?>
-
-<?php else: ?>
-	<h2><?php _e('BASE To WordPress 商品管理', BASE_TO_WP_NAMEDOMAIN); ?><a href="<?php echo $items_uri.'&action=new'?>" class="add-new-h2">新規追加</a></h2>
-	<?php if (empty($e)):?>
-	<?php //$BaseOAuthWP->render_list($items_obj); ?>
-	<form id="base-items-filter" method="get">
-		<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
-		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
-		<?php $ItemListTable->display(); ?>
-	</form>
-	<?php else: ?>
-		<?php var_dump($e->getMessage()); ?>
-	<?php endif; ?>
-
-<?php endif; ?>
-</div>

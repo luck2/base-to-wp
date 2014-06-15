@@ -7,9 +7,9 @@
  */
 
 //TODO DEBUG
-ini_set('display_errors', true);
-error_reporting(E_ALL);
-debug_base();
+//ini_set('display_errors', true);
+//error_reporting(E_ALL);
+//debug_base();
 if (isset($_GET['delete']) && $_GET['delete']==1)
 	debug_delete_options();
 

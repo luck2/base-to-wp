@@ -19,6 +19,7 @@ class AdminMenus {
 	 */
 	public $hook_dashboard;
 	public $hook_items;
+	public $hook_items_new;
 	public $hook_design;
 	public $hook_order;
 	public $hook_settings;
@@ -38,10 +39,8 @@ class AdminMenus {
 		$this->hook_dashboard = add_submenu_page( 'base_to_wp', 'BASE To WP > dashboard', 'Dashboard', 'administrator', 'base_to_wp', function () {
 			include_once BASE_TO_WP_ABSPATH."/dashboard.php";
 		} );
-		// BASE To WP > 商品管理
-		$this->hook_items = add_submenu_page( 'base_to_wp', 'BASE To WP > Items', 'Items', 'administrator', 'base_to_wp_items', function () {
-			include_once BASE_TO_WP_ABSPATH."/items.php";
-		} );
+
+
 		// BASE To WP > デザイン編集
 		$this->hook_design = add_submenu_page( 'base_to_wp', 'BASE To WP > Design', 'Design', 'administrator', 'base_to_wp_design', function () {
 			include_once BASE_TO_WP_ABSPATH."/design.php";
@@ -64,27 +63,6 @@ class AdminMenus {
 		//Contextual helps
 		add_filter('contextual_help', array($this, 'attach_contextual_helps'), 10, 3);
 
-
-		//Screen options #FIXME Save
-		$add_option = function() {
-			$option = 'per_page';
-			$args = array(
-				'label' => 'items',
-				'default' => 10,
-				'option' => 'item_per_page'
-			);
-			add_screen_option( $option, $args );
-		};
-		add_action( "load-{$this->hook_items}", $add_option );
-
-		#FIXME 保存側
-		function base_to_wp_set_option($status, $option, $value) {
-			if ( 'item_per_page' == $option ) return $value;
-			return $status;
-		}
-		add_filter('set-screen-option', 'base_to_wp_set_option', 10, 3);
-
-
 		// 設定メニュー下にサブメニューを追加
 //		add_options_page('Test Options', 'Test Options', 'administrator', 'test-options', function(){ echo "<h2>Test Options</h2>"; });
 		// 管理メニューにサブメニューを追加
@@ -103,25 +81,22 @@ class AdminMenus {
 	 * @return string
 	 */
 	public function attach_contextual_helps ($contextual_help, $screen_id, $screen) {
-		//var_dump($contextual_help,$screen_id, $screen);
+//		var_dump($contextual_help,$screen_id, $screen);
 		switch ($screen_id) {
 			case $this->hook_dashboard :
-				$contextual_help = '<p>ダッシュボードのヘルプ</p>';
-				break;
-			case $this->hook_items :
-				$contextual_help = '<p>商品管理のヘルプ</p>';
+				$contextual_help .= '<p>ダッシュボードのヘルプ</p>';
 				break;
 			case $this->hook_design :
-				$contextual_help = '<p>デザインのヘルプ</p>';
+				$contextual_help .= '<p>デザインのヘルプ</p>';
 				break;
 			case $this->hook_order :
-				$contextual_help = '<p>注文管理のヘルプ</p>';
+				$contextual_help .= '<p>注文管理のヘルプ</p>';
 				break;
 			case $this->hook_settings :
-				$contextual_help = '<p>セッティングのヘルプ</p>';
+				$contextual_help .= '<p>セッティングのヘルプ</p>';
 				break;
 			case $this->hook_install :
-				$contextual_help = '<p>インストールのヘルプ</p>';
+				$contextual_help .= '<p>インストールのヘルプ</p>';
 				break;
 		}
 		return $contextual_help;

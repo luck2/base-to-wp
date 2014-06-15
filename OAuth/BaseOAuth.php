@@ -59,6 +59,9 @@ class BaseOAuth {
 	 */
 	const ITEMS = 'items';
 	const ITEMS_DETAIL = 'items/detail/';
+	const ITEMS_ADD = 'items/add';
+	const ITEMS_EDIT = 'items/edit';
+	const ITEMS_DELETE = 'items/delete';
 	/**
 	 * Orders
 	 *
@@ -274,8 +277,34 @@ class BaseOAuth {
 		return self::json_parse( $response );
 	}
 
-	public function addItem() {
+	/**
+	 * POST /1/items/add
+	 * 商品情報を登録
+	 * @param array $item
+	 *
+	 * @return array|mixed
+	 */
+	public function addItem($item) {
+		$this->url = self::build_url(self::ITEMS_ADD);
+		$response = $this->_post($this->url, $item);
+		return self::json_parse( $response );
 	}
+
+	/**
+	 * POST /1/items/edit
+	 * 商品情報を更新
+	 *
+	 * @param array $item
+	 *
+	 * @return array|mixed
+	 */
+	public function editItem($item) {
+		$this->url = self::build_url(self::ITEMS_EDIT);
+		$response = $this->_post($this->url, $item);
+		return self::json_parse( $response );
+	}
+
+
 
 	/**
 	 * GET /1/orders
