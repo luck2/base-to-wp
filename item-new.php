@@ -197,6 +197,9 @@ class ItemNewPage
 							$message='新規商品を追加しました。<a href="#">商品を表示する</a>',
 							$type='updated'
 						);
+
+						//TODO リロードで同じ商品ができる
+						//TODO 追加後新規作成した商品が表示されるが、そのまま編集すると違う商品が作成される。
 					} else {//Edit
 						$response = $BaseOAuthWP->editItem($item);
 						add_settings_error(
@@ -205,6 +208,8 @@ class ItemNewPage
 							$message='商品を編集しました。<a href="http://www.luck2.localhost/?p=3445">商品を表示する</a>',
 							$type='updated'
 						);
+
+						//TODO ブラウザリロードで再書込される
 					}
 					var_dump($response);
 				} else {//Validate error
