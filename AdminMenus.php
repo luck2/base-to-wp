@@ -40,14 +40,9 @@ class AdminMenus {
 			include_once BASE_TO_WP_ABSPATH."/dashboard.php";
 		} );
 
-
 		// BASE To WP > デザイン編集
 		$this->hook_design = add_submenu_page( 'base_to_wp', 'BASE To WP > Design', 'Design', 'administrator', 'base_to_wp_design', function () {
 			include_once BASE_TO_WP_ABSPATH."/design.php";
-		} );
-		// BASE To WP > 注文管理
-		$this->hook_order = add_submenu_page( 'base_to_wp', 'BASE To WP > Orders', 'Orders', 'administrator', 'base_to_wp_orders', function () {
-			include_once BASE_TO_WP_ABSPATH."/orders.php";
 		} );
 		// BASE To WP > セッティング
 		$this->hook_settings = add_submenu_page( 'base_to_wp', 'BASE To WP > settings', 'Settings', 'administrator', 'base_to_wp_settings', function () {
@@ -88,9 +83,6 @@ class AdminMenus {
 				break;
 			case $this->hook_design :
 				$contextual_help .= '<p>デザインのヘルプ</p>';
-				break;
-			case $this->hook_order :
-				$contextual_help .= '<p>注文管理のヘルプ</p>';
 				break;
 			case $this->hook_settings :
 				$contextual_help .= '<p>セッティングのヘルプ</p>';

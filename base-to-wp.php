@@ -75,7 +75,6 @@ class BaseToWP {
 		add_action('admin_menu', array($AdminMenus, 'admin_menus'));// 管理メニューに追加するフック
 
 
-
 		require_once BASE_TO_WP_ABSPATH . '/items.php';
 		$items_page = new ItemsPage('base_to_wp',__('BASE To WP > Items',BaseToWP::NAME_DOMAIN),__('Items',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_items');
 
@@ -83,11 +82,14 @@ class BaseToWP {
 		$item_new_page = new ItemNewPage('base_to_wp',__('BASE To WP > New Item',BaseToWP::NAME_DOMAIN),__('New Item',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_new_item');
 
 
+		require_once BASE_TO_WP_ABSPATH . '/orders.php';
+		$orders_page = new OrdersPage('base_to_wp',__('BASE To WP > Orders',BaseToWP::NAME_DOMAIN),__('Orders',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_orders');
+
+
 		// TODO DEBUG
 		add_action('wp_head', function(){
 			//global $wp_query;var_dump($wp_query);
 		});
-
 
 	}
 

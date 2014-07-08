@@ -56,12 +56,12 @@ class ItemListTable extends \WP_List_Table {
 	function column_title($item){
 		//Build row actions
 		$actions = array(
-			'edit'      => sprintf('<a href="%s&item=%s">Edit</a>', admin_url('admin.php?page=base_to_wp_new_item'), $item['item_id']),
-			'delete'    => sprintf('<a href="?page=%s&action=%s&item=%s">Delete</a>',$_GET['page'],'delete',$item['item_id']),
+			'edit'      => sprintf('<a href="%s">Edit</a>', admin_url('admin.php?page=base_to_wp_new_item&item='.$item['item_id'])),
+			'delete'    => sprintf('<a href="?page=%s&action=%s&item=%s" onclick="return confirm(\'削除してよろしいですか？\');">Delete</a>',$_GET['page'],'delete',$item['item_id']),
 		);
 		//Return the title contents
 		return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-			/*$1%s*/ $item['title'],
+			/*$1%s*/ sprintf('<a href="%s">%s</a>', admin_url('admin.php?page=base_to_wp_new_item&item='.$item['item_id']), $item['title']),
 			/*$2%s*/ $item['item_id'],
 			/*$3%s*/ $this->row_actions($actions)
 		);
@@ -120,7 +120,21 @@ class ItemListTable extends \WP_List_Table {
 	 */
 	function process_bulk_action() {
 		if( 'delete'===$this->current_action() ) {
-			wp_die('Items deleted (or they would be if we had items to delete)!');
+			try {
+				$BaseOAuthWP = new \BaseOAuthWP();
+				$BaseOAuthWP->checkToken();
+				if (isset($_GET['item']) && (int)$_GET['item'] > 0) {
+					var_dump($_GET['item']);
+					$delete = $BaseOAuthWP->deleteItem(array('item_id'=>$_GET['item']));
+					wp_die('Items deleted (or they would be if we had items to delete)!');
+				} else {
+					throw new \Exception('No item.');
+				}
+			} catch (Exception $e) {
+				wp_die('error:'.$e->getMessage());
+			}
+		} else {
+
 		}
 	}
 

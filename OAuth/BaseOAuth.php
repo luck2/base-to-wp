@@ -305,6 +305,19 @@ class BaseOAuth {
 	}
 
 
+	/**
+	 * POST /1/items/delete
+	 * 商品情報を削除
+	 *
+	 * @param $item
+	 *
+	 * @return array|mixed
+	 */
+	public function deleteItem($item) {
+		$this->url = self::build_url(self::ITEMS_DELETE);
+		$response = $this->_post($this->url, $item);
+		return self::json_parse( $response );
+	}
 
 	/**
 	 * GET /1/orders

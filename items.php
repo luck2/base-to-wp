@@ -49,8 +49,6 @@ class ItemsPage
 		/* Enqueue WordPress' script for handling the metaboxes */
 		add_action('admin_print_scripts-'.$this->screen_id, function(){wp_enqueue_script( 'postbox' );});
 		add_action('admin_footer-'.$this->screen_id,array($this,'footer_scripts'));
-		//Add some metaboxes to the page
-//		add_action('add_meta_boxes_'.$this->screen_id, array($this, 'metaboxes'));
 
 	}
 
@@ -107,20 +105,6 @@ class ItemsPage
 	}
 
 	/**
-	 *
-	 */
-	public function metaboxes() {
-		$screen = get_current_screen();//WP_Screen
-		//Normal
-		add_meta_box('example1','Example 1',array($this,'render_metabox'),$screen,'normal','high');
-		//Advanced
-		add_meta_box('example2','Example 2',array($this,'render_metabox'));
-		add_meta_box('example3','Example 3',array($this,'render_metabox'));
-		//Side
-		add_meta_box('submitdiv',__('Publish',BaseToWP::NAME_DOMAIN),array($this,'render_submit_box'),$screen,'side','high');
-	}
-
-	/**
 	 * Renders the page
 	*/
 	public function render_page(){
@@ -129,7 +113,6 @@ class ItemsPage
 		ini_set('display_errors', true);
 		error_reporting(E_ALL);
 		debug_base();
-
 
 		$items_uri = admin_url('admin.php?page=base_to_wp_items');
 		$items_new_uri = admin_url('admin.php?page=base_to_wp_new_item');
@@ -167,133 +150,7 @@ class ItemsPage
 			</div>
 			<?php
 		}
-		?>
-
-	<?php
 	}
-
-	private function render_contents() {
-		//Init
-		empty( $_GET['item'] ) and $_GET['item'] = null;
-		$item = null;
-
-		$items_uri     = admin_url( 'admin.php?page=base_to_wp_items' );
-		$items_new_uri = admin_url( 'admin.php?page=base_to_wp_new_item' );
-
-		try {
-			if ( $_GET['item'] > 0 ) {
-				//Edit
-				$BaseOAuthWP = new BaseOAuthWP();
-				$BaseOAuthWP->checkToken();
-
-				$item = $BaseOAuthWP->getItem( $_GET['item'] );
-			} else {
-				//New
-				$item             = new stdClass();
-				$item->title      = '';
-				$item->price      = '';
-				$item->detail     = '';
-				$item->visible    = '';
-				$item->stock      = '';
-				$item->list_order = '';
-			}
-			?>
-			<div id="titlediv">
-				<div id="titlewrap">
-					<label class="screen-reader-text" id="title-prompt-text" for="title">ここにタイトルを入力</label>
-					<input type="text" name="post_title" size="30" value="<?php esc_attr_e( $item->title ) ?>" id="title"
-					       autocomplete="off">
-				</div>
-				<div class="inside">
-					<div id="edit-slug-box" class="hide-if-no-js">
-						<strong>パーマリンク:</strong>
-						<span id="sample-permalink" tabindex="-1">http://しょうひんしょうさいurl</span>
-						<span id="view-post-btn"><a href="http://しょうひんしょうさいurl" class="button button-small">Itemを表示</a></span>
-						<span id="view-post-btn2"><a href="http://baseしょうひんしょうさいurl" class="button button-small">BaseShopのItemを表示</a></span>
-					</div>
-				</div>
-				<input type="hidden" id="samplepermalinknonce" name="samplepermalinknonce" value="b9dbdfa0cb"></div>
-
-			<div id="namediv" class="stuffbox">
-				<h3><label for="name">商品編集</label></h3>
-
-				<div class="inside">
-					<table class="form-table editcomment">
-						<tbody>
-						<tr>
-							<td class="first">価格（税込）</td>
-							<td><input type="text" name="price" size="30" value="<?php esc_attr_e( $item->price ) ?>" id="price"></td>
-						</tr>
-						<tr>
-							<td class="first">商品説明</td>
-							<td><input type="text" name="detail" size="30" value="<?php esc_attr_e( $item->detail ) ?>" id="detail"></td>
-						</tr>
-						<tr>
-							<td class="first">在庫数</td>
-							<td><input type="text" name="stock" size="30" value="<?php esc_attr_e( $item->stock ) ?>" id="stock"></td>
-						</tr>
-						<tr>
-							<td class="first">商品画像</td>
-							<td><input type="text" name="gagaga" size="30" value="<?php esc_attr_e( $item->title ) ?>" id="gagaga"></td>
-						</tr>
-						</tbody>
-					</table>
-					<br>
-				</div>
-			</div>
-		<?php
-		} catch ( Exception $e ) {
-			?>
-			<div><?php var_dump($e->getMessage()); ?>:</div>
-		<?php
-		}
-	}
-
-	public function render_submit_box() {
-		?>
-		<div class="submitbox" id="submitcomment">
-			<div id="minor-publishing">
-				<div id="minor-publishing-actions">
-					<div id="preview-action">
-						<a class="preview button" href="http://www.luck2.localhost/company#comment-177" target="_blank">コメントを表示</a>
-					</div>
-					<div class="clear"></div>
-				</div>
-				<div id="misc-publishing-actions">
-					<div class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
-						<label class="approved"><input type="radio" checked="checked" name="visible" value="1">公開</label>&nbsp;|&nbsp;
-						<label class="spam"><input type="radio" name="visible" value="0">非公開</label>
-					</div>
-					<div class="misc-pub-section misc-pub-comment-author-ip">
-						<strong>並び順</strong><br>
-						<input type="text" name="order_list" size="3" />
-					</div>
-					<div class="misc-pub-section misc-pub-comment-author-ip">
-						<label><input type="checkbox" name="display_above" />一番上に表示する</label>
-					</div>
-				</div> <!-- misc actions -->
-				<div class="clear"></div>
-			</div>
-			<div id="major-publishing-actions">
-				<div id="delete-action">
-					<a class="submitdelete deletion" href="#">ゴミ箱へ移動</a>
-				</div>
-				<div id="publishing-action">
-					<input type="submit" name="save" id="save" class="button button-primary" value="更新"></div>
-				<div class="clear"></div>
-			</div>
-
-		</div>
-	<?php
-	}
-
-	public function render_metabox() {
-		?>
-		<p> An example of a metabox <p>
-	<?php
-	}
-
-
 
 }
 
