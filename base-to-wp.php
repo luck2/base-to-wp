@@ -65,18 +65,31 @@ class BaseToWP {
 		require_once BASE_TO_WP_ABSPATH . "/widgets/ItemsWidget.php";
 		add_action('widgets_init', function(){ register_widget('BaseToWPItemsWidget'); });
 
-		//#TODO jqueryない場合登録
+		// jqueryない場合登録
 		add_action('wp_enqueue_scripts', function(){wp_enqueue_script( 'jquery' );});
 
-		//管理画面
-		add_action('init', array($this, 'install_check'));// Install check
-		add_action('admin_menu', array($this, 'admin_menus'));// 管理メニューに追加するフック
+		//管理メニュー TODO ページクラスに分ける
+		require_once BASE_TO_WP_ABSPATH . '/AdminMenus.php';
+		$AdminMenus = new \BaseToWP\AdminMenus();
+		add_action('init', array($AdminMenus, 'install_check'));// Install check
+		add_action('admin_menu', array($AdminMenus, 'admin_menus'));// 管理メニューに追加するフック
+
+
+		require_once BASE_TO_WP_ABSPATH . '/items.php';
+		$items_page = new ItemsPage('base_to_wp',__('BASE To WP > Items',BaseToWP::NAME_DOMAIN),__('Items',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_items');
+
+		require_once BASE_TO_WP_ABSPATH . '/item-new.php';
+		$item_new_page = new ItemNewPage('base_to_wp',__('BASE To WP > New Item',BaseToWP::NAME_DOMAIN),__('New Item',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_new_item');
+
+
+		require_once BASE_TO_WP_ABSPATH . '/orders.php';
+		$orders_page = new OrdersPage('base_to_wp',__('BASE To WP > Orders',BaseToWP::NAME_DOMAIN),__('Orders',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_orders');
+
 
 		// TODO DEBUG
 		add_action('wp_head', function(){
 			//global $wp_query;var_dump($wp_query);
 		});
-
 
 	}
 
@@ -119,58 +132,6 @@ class BaseToWP {
 	 * プラグインアンインストール時
 	 */
 	public function uninstall() {
-	}
-
-	/**
-	 * メニュー画面追加
-	 */
-	public function admin_menus() {
-		// BASE To WP > ダッシュボード
-		add_menu_page( 'BASE To WP', 'BASE To WP', 'administrator', 'base_to_wp', function () {
-			include BASE_TO_WP_ABSPATH . "/dashboard.php";
-		} );
-		// BASE To WP > ダッシュボード
-		add_submenu_page( 'base_to_wp', 'BASE To WP > dashboard', 'Dashboard', 'administrator', 'base_to_wp', function () {
-			include BASE_TO_WP_ABSPATH."/dashboard.php";
-		} );
-		// BASE To WP > 商品管理
-		add_submenu_page( 'base_to_wp', 'BASE To WP > Items', 'Items', 'administrator', 'base_to_wp_items', function () {
-			include BASE_TO_WP_ABSPATH."/items.php";
-		} );
-		// BASE To WP > 注文管理
-		add_submenu_page( 'base_to_wp', 'BASE To WP > Orders', 'Orders', 'administrator', 'base_to_wp_orders', function () {
-			include BASE_TO_WP_ABSPATH."/orders.php";
-		} );
-		// BASE To WP > セッティング
-		add_submenu_page( 'base_to_wp', 'BASE To WP > settings', 'Settings', 'administrator', 'base_to_wp_settings', function () {
-			include BASE_TO_WP_ABSPATH."/settings.php";
-		} );
-		// BASE To WP > インストール
-		if (!get_option( 'base_to_wp_account_activated') || isset($_GET['reset_account']) || isset($_GET['oauth'])) {
-			add_submenu_page( 'base_to_wp', 'BASE To WP > install', 'Install', 'administrator', 'base_to_wp_install', function () {
-				include BASE_TO_WP_ABSPATH . "/install.php";
-			} );
-		}
-
-		// 設定メニュー下にサブメニューを追加
-//		add_options_page('Test Options', 'Test Options', 'administrator', 'test-options', function(){ echo "<h2>Test Options</h2>"; });
-		// 管理メニューにサブメニューを追加
-//		add_management_page('Test Manage', 'Test Manage', 'administrator', 'test-manage', function(){ echo "<h2>Test Manage</h2>";});
-
-	}
-
-	/**
-	 * 初期設定完了をチェック
-	 */
-	public function install_check(){
-		//base_to_wp以外
-		if (strpos($_SERVER['REQUEST_URI'],'/wp-admin/admin.php?page=base_to_wp') === false)
-			return;
-
-		//未インストールかつインストールページでない
-		if ( !get_option('base_to_wp_account_activated') && !(isset($_GET['page']) && $_GET['page'] == 'base_to_wp_install' ) ) {
-			wp_redirect(admin_url('admin.php?page=base_to_wp_install'));
-		}
 	}
 
 

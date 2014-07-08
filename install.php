@@ -6,6 +6,10 @@
  * Time: 13:21
  */
 
+//TODO DEBUG
+//ini_set('display_errors', true);
+//error_reporting(E_ALL);
+//debug_base();
 
 
 // $_GET initialize
@@ -21,10 +25,6 @@ $redirect_uri = $install_uri;
 $redirect_uri = $install_uri . '&installing=1&step=5&oauth=1';//FIXME DEVELOP
 list($next_uri) = explode('&step', $admin_uri . '?' . $_SERVER['QUERY_STRING']);
 $message='';$user=null;$authorize_uri=null;
-//TODO DEBUG
-ini_set('display_errors', true);
-error_reporting(E_ALL);
-debug_base();
 
 
 
