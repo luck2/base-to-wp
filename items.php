@@ -131,25 +131,29 @@ class ItemsPage
 			$ItemListTable->data = $items;
 			$ItemListTable->prepare_items();
 
-			?>
-			<div class="wrap">
-				<h2> <?php echo esc_html($this->title);?> <a href="<?php echo $items_new_uri; ?>" class="add-new-h2">新規追加</a> </h2>
-					<?php //$BaseOAuthWP->render_list($items_obj); ?>
-					<form id="base-items-filter" method="get">
-						<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
-						<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
-						<?php $ItemListTable->display(); ?>
-					</form>
-			</div>
-			<?php
 		} catch (Exception $e) {
-			?>
-			<div class="wrap">
-				<h2> <?php echo esc_html($this->title);?> <a href="<?php echo $items_new_uri; ?>" class="add-new-h2">新規追加</a> </h2>
-				<?php var_dump($e->getMessage()); ?>
-			</div>
-			<?php
+			add_settings_error(
+				'items',
+				esc_attr($e->getCode()),
+				__($message=$e->getMessage()),
+				'error'
+			);
 		}
+		?>
+		<div class="wrap">
+			<h2> <?php echo esc_html($this->title);?> <a href="<?php echo $items_new_uri; ?>" class="add-new-h2">新規追加</a> </h2>
+			<?php if (empty($e)) : ?>
+				<?php //$BaseOAuthWP->render_list($items_obj); ?>
+				<form id="base-items-filter" method="get">
+					<?php $ItemListTable->search_box('商品を検索','base-item-search-input'); ?>
+					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />
+					<?php $ItemListTable->display(); ?>
+				</form>
+			<?php else : ?>
+				<?php settings_errors('items'); ?>
+			<?php endif; ?>
+		</div>
+		<?php
 	}
 
 }

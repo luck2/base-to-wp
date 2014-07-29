@@ -21,16 +21,18 @@ try {
 	$savings = $BaseOAuthWP->getSavings($param=array());
 
 } catch (Exception $e) {
-//	echo '<pre>';var_dump($e);echo '</pre>';
+	add_settings_error(
+		'dashboard',
+		esc_attr($e->getCode()),
+		__($message=$e->getMessage()),
+		'error'
+	);
 
 	// 有効なアクセストークンが取得できないならinstallページに移動させるリンクを表示
-	$error_message='';
-	if ($e->getCode() === 408) {
-		$error_message = '<p>アクセストークが取得できません。BASEクライアント認証の<a href="' . $reset_account_uri.'">再セットアップ</a>を行ってください。</p>';
-	}
+	$error_message = ($e->getCode() === 408)
+		?'<p>アクセストークが取得できません。BASEクライアント認証の<a href="' . $reset_account_uri.'">再セットアップ</a>を行ってください。</p>'
+		:'';
 }
-
-
 ?>
 <div class="wrap">
 	<h2><?php _e('BASE To WordPress Dashboard', BASE_TO_WP_NAMEDOMAIN); ?></h2>
@@ -44,7 +46,7 @@ try {
 		<h3>引き出し申請情報</h3>
 		<?php $BaseOAuthWP->render_list($savings); ?>
 	<?php else : ?>
-		<?php echo $e->getMessage(); ?>
+		<?php settings_errors('dashboard'); ?>
 		<?php echo $error_message; ?>
 	<?php endif; ?>
 </div>

@@ -79,12 +79,10 @@ class BaseToWP {
 		$items_page = new ItemsPage('base_to_wp',__('BASE To WP > Items',BaseToWP::NAME_DOMAIN),__('Items',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_items');
 
 		require_once BASE_TO_WP_ABSPATH . '/item-new.php';
-		$item_new_page = new ItemNewPage('base_to_wp',__('BASE To WP > New Item',BaseToWP::NAME_DOMAIN),__('New Item',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_new_item');
-
+		$item_new_page = new ItemNewPage('base_to_wp',__('BASE To WP > New Item',BaseToWP::NAME_DOMAIN),__('New item',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_new_item');
 
 		require_once BASE_TO_WP_ABSPATH . '/orders.php';
 		$orders_page = new OrdersPage('base_to_wp',__('BASE To WP > Orders',BaseToWP::NAME_DOMAIN),__('Orders',BaseToWP::NAME_DOMAIN), 'administrator','base_to_wp_orders');
-
 
 		// TODO DEBUG
 		add_action('wp_head', function(){

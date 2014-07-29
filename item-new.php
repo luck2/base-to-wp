@@ -223,12 +223,20 @@ class ItemNewPage
 			}
 
 			$this->item = $item;
-			?>
-			<div class="wrap">
-				<h2> <?php echo esc_html($this->title);?> </h2>
-
-				<?php settings_errors('item-new'); ?>
-
+		} catch ( Exception $e ) {
+			add_settings_error(
+				'item-new',
+				esc_attr($e->getCode()),
+				__($message=$e->getMessage()),
+				'error'
+			);
+		}
+		?>
+		<div class="wrap">
+			<h2> <?php echo esc_html($this->title);?> </h2>
+			<?php settings_errors('item-new'); ?>
+			<?php settings_errors('validate'); ?>
+			<?php if (empty($e)) : ?>
 				<form name="my_form" method="post">
 					<input type="hidden" name="action" value="some-action">
 					<?php
@@ -252,22 +260,10 @@ class ItemNewPage
 						</div> <!-- #post-body -->
 					</div> <!-- #poststuff -->
 				</form>
-			</div><!-- .wrap -->
+			<?php else : ?>
+			<?php endif; ?>
+		</div><!-- .wrap -->
 		<?php
-		} catch ( Exception $e ) {
-			add_settings_error(
-				'item-new',
-				esc_attr( 'item_error' ),
-				$message=$e->getMessage(),
-				'error'
-			);
-			?>
-			<div class="wrap">
-				<h2> <?php echo esc_html($this->title);?> </h2>
-				<?php settings_errors('item-new'); ?>
-			</div><!-- .wrap -->
-		<?php
-		}
 	}
 
 	private function render_contents($item) {
