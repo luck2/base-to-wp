@@ -156,7 +156,8 @@ class OrdersPage
 //					$BaseOAuthWP->render_list($order);
 					?>
 					<div id="welcome-panel" class="welcome-panel">
-						<input type="hidden" id="welcomepanelnonce" name="welcomepanelnonce" value="8dd93a33d0">		<a class="welcome-panel-close" href="http://www.luck2.localhost/wp-admin/?welcome=0">非表示にする</a>
+						<input type="hidden" id="welcomepanelnonce" name="welcomepanelnonce" value="8dd93a33d0">
+						<a class="welcome-panel-close" href="http://www.luck2.localhost/wp-admin/?welcome=0">非表示にする</a>
 						<div class="welcome-panel-content">
 							<h3>WordPress へようこそ !</h3>
 							<p class="about-description">初めての方に便利なリンクを集めました。</p>
@@ -186,8 +187,6 @@ class OrdersPage
 							</div>
 						</div>
 					</div>
-
-
 
 					<div id="dashboard-widgets-wrap">
 					<div id="dashboard-widgets" class="metabox-holder">
